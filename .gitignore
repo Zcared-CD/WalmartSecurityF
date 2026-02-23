@@ -1,0 +1,143 @@
+#################################################
+# DEPENDENCIAS
+#################################################
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.yarn-cache/
+.yarn-integrity/
+
+#################################################
+# BUILD / OUTPUT
+#################################################
+dist/
+dist-ssr/
+build/
+coverage/
+.vite/
+.cache/
+*.tsbuildinfo
+*.timestamp-*-*.mjs
+
+#################################################
+# LOGS
+#################################################
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+#################################################
+# VARIABLES DE ENTORNO (CRÍTICO)
+#################################################
+.env
+.env.*
+!.env.example
+!.env.template
+
+#################################################
+# CONFIGURACIONES LOCALES
+#################################################
+*.local
+*.local.ts
+*.local.js
+*.development
+*.production.local
+*.staging.local
+config.local.js
+config.secret.js
+connection.js
+credentials.json
+
+#################################################
+# SECRETOS / LLAVES / CERTIFICADOS
+#################################################
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*.keystore
+*.asc
+*.gpg
+*.kdbx
+
+#################################################
+# CLOUD / SERVICIOS
+#################################################
+serviceAccountKey.json
+firebase.json
+aws-exports.js
+awsconfiguration.json
+.google/
+.aws/
+
+#################################################
+# BASES DE DATOS LOCALES (por si acaso)
+#################################################
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.dump
+
+#################################################
+# BACKUPS
+#################################################
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+#################################################
+# IDE / EDITORES
+#################################################
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+
+#################################################
+# TESTING
+#################################################
+/cypress/videos/
+/cypress/screenshots/
+__screenshots__/
+
+#################################################
+# SISTEMA OPERATIVO
+#################################################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+#################################################
+# TEMPORALES
+#################################################
+.tmp/
+temp/
+*.tmp
+
+#################################################
+# DOCKER LOCAL
+#################################################
+docker-compose.override.yml
+
+#################################################
+# REPORTES DE SEGURIDAD
+#################################################
+*.audit.json
+npm-audit.json
+security-report.json
