@@ -59,7 +59,7 @@ import { ref, watch } from 'vue'
 
 // 1. Definimos la forma del producto para que no haya errores
 interface Product {
-  id?: number | null
+  id: string | null
   name: string
   price: number
   stock: number
