@@ -1,25 +1,54 @@
 import api from './api'
 
 export const login = async (username: string, password: string) => {
-  const response = await api.post('/api/login/', { username, password })
-  localStorage.setItem('username', username)
-  localStorage.setItem('totp_step', response.data.step)
+  try {
+    const response = await api.post('/api/login/', {
+      username: username.trim(),
+      password: password
+    })
 
-  if (response.data.step === 'setup') {
-    localStorage.setItem('totp_qr', response.data.qr)
+    localStorage.setItem('username', username.trim())
+    localStorage.setItem('totp_step', response.data.step)
+
+    if (response.data.step === 'setup') {
+      localStorage.setItem('totp_qr', response.data.qr)
+    }
+
+    return response.data
+  } catch (error: any) {
+    console.error("Error en login:", error.response?.data || error.message)
+    throw error
   }
-
-  return response.data
 }
 
 export const verificarTotp = async (codigo: string) => {
   const username = localStorage.getItem('username')
-  const response = await api.post('/api/verificar-totp/', { username, codigo })
-  localStorage.setItem('access_token', response.data.access)
-  localStorage.setItem('refresh_token', response.data.refresh)
-  return response.data
+
+  try {
+    const response = await api.post('/api/verificar-totp/', {
+      username,
+      codigo
+    })
+
+    localStorage.setItem('access_token', response.data.access)
+    localStorage.setItem('refresh_token', response.data.refresh)
+
+    localStorage.removeItem('totp_qr')
+
+    return response.data
+  } catch (error: any) {
+    console.error("Error en verificar TOTP:", error.response?.data || error.message)
+    throw error
+  }
 }
 
-export const logout = () => {
-  localStorage.clear()
+
+export const logout = async () => {
+  try {
+    await api.post('/api/logout/')
+  } catch (error) {
+    console.error("Error al cerrar sesión en el servidor:", error)
+  } finally {
+    localStorage.clear()
+  }
 }

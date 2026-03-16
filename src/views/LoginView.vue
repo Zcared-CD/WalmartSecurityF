@@ -3,6 +3,7 @@
     <HeaderBar />
 
     <AuthCard title="Login de trabajadores">
+      <!-- Usuario -->
       <v-text-field
         v-model="username"
         label="Usuario"
@@ -12,18 +13,24 @@
         color="blue-darken-2"
         class="mb-2"
         :disabled="cargando"
+        hide-details="auto"
       />
 
+      <!-- Contraseña con Ojo para ver -->
       <v-text-field
         v-model="password"
         label="Contraseña"
-        type="password"
+        :type="mostrarPassword ? 'text' : 'password'"
         prepend-inner-icon="mdi-lock"
+        :append-inner-icon="mostrarPassword ? 'mdi-eye-off' : 'mdi-eye'"
         variant="outlined"
         density="comfortable"
         color="blue-darken-2"
         class="mb-3"
         :disabled="cargando"
+        @click:append-inner="mostrarPassword = !mostrarPassword"
+        @keyup.enter="goToToken"
+        hide-details="auto"
       />
 
       <!-- Mensaje de error -->
@@ -37,14 +44,25 @@
         {{ error }}
       </v-alert>
 
+      <!-- Botón con Spinner (loading) -->
       <v-btn
         block
         size="large"
         class="login-btn"
         :loading="cargando"
+        :disabled="cargando"
         @click="goToToken"
       >
         INICIAR SESIÓN
+        <!-- Personalización del spinner si deseas -->
+        <template v-slot:loader>
+          <v-progress-circular
+            indeterminate
+            color="white"
+            size="22"
+            width="2"
+          ></v-progress-circular>
+        </template>
       </v-btn>
     </AuthCard>
 
@@ -60,13 +78,13 @@ import { login } from '@/services/auth'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-
 const router = useRouter()
 
 const username = ref('')
 const password = ref('')
 const error = ref('')
 const cargando = ref(false)
+const mostrarPassword = ref(false) // Nueva variable para el ojo
 
 const goToToken = async () => {
   if (!username.value || !password.value) {
@@ -78,15 +96,20 @@ const goToToken = async () => {
     cargando.value = true
     error.value = ''
 
+    // Aquí es donde Vue "viaja" a Django y este a AWS
     const response = await login(username.value, password.value)
 
     localStorage.setItem('totp_step', response.step)
 
+    // Si todo sale bien, vamos al siguiente paso
     router.push('/token')
 
-  } catch (e) {
+  } catch (e: any) {
+    // Si Django responde 400 o 401, caemos aquí
     error.value = 'Usuario o contraseña incorrectos'
+    console.error("Error de autenticación:", e)
   } finally {
+    // Quitamos el spinner siempre, falle o gane
     cargando.value = false
   }
 }
@@ -94,12 +117,21 @@ const goToToken = async () => {
 
 <style scoped>
 .login-btn {
-  background-color: #0071ce;
-  color: white;
+  background-color: #0071ce !important;
+  color: white !important;
   font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
 }
 
 .login-btn:hover {
-  background-color: #004c91;
+  background-color: #004c91 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Estilo para cuando el botón está deshabilitado o cargando */
+.v-btn--disabled {
+  opacity: 0.8 !important;
 }
 </style>
