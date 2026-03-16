@@ -3,27 +3,67 @@
     <HeaderBar />
 
     <AuthCard title="Verificación de acceso">
-      <div class="text-center mb-3">
-        <p class="token-message">Escribe el token que se envió a tu correo antes de que caduque.</p>
+
+      <!-- ── CASO 1: Primera vez → muestra QR ── -->
+      <div v-if="step === 'setup'" class="text-center mb-3">
+        <p class="token-message mb-3">
+          Escanea este código QR con <strong>Google Authenticator</strong> para configurar tu acceso.
+        </p>
+
+        <!-- QR generado por el backend -->
+        <v-img
+          v-if="qrImage"
+          :src="`data:image/png;base64,${qrImage}`"
+          width="200"
+          class="mx-auto mb-3 rounded"
+        />
+
+        <p class="token-message">
+          Una vez escaneado, ingresa el código que te genera la app:
+        </p>
       </div>
 
+      <!-- ── CASO 2: Ya configuró → pide código ── -->
+      <div v-else class="text-center mb-3">
+        <p class="token-message">
+          Ingresa el código de <strong>Google Authenticator</strong>.
+        </p>
+      </div>
+
+      <!-- Campo del código (aplica en ambos casos) -->
       <v-text-field
         v-model="tokenInput"
-        label="Token"
+        label="Código"
         prepend-inner-icon="mdi-shield-key"
         variant="outlined"
         density="comfortable"
         color="blue-darken-2"
         class="mb-3"
+        maxlength="6"
+        :disabled="cargando"
       />
 
-      <div class="text-center mb-3">
-        <span class="timer"> Tiempo restante: {{ minutes }}:{{ seconds }} </span>
-      </div>
+      <!-- Mensaje de error -->
+      <v-alert
+        v-if="error"
+        type="error"
+        variant="tonal"
+        class="mb-3"
+        density="compact"
+      >
+        {{ error }}
+      </v-alert>
 
-      <v-btn block size="large" class="login-btn" @click="handleValidateToken">
+      <v-btn
+        block
+        size="large"
+        class="login-btn"
+        :loading="cargando"
+        @click="handleValidateToken"
+      >
         VALIDAR TOKEN
       </v-btn>
+
     </AuthCard>
 
     <FooterBar />
@@ -31,50 +71,52 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router' // 3. Importamos el router
-import HeaderBar from '@/components/layout/HeaderBar.vue'
-import FooterBar from '@/components/layout/FooterBar.vue'
 import AuthCard from '@/components/auth/AuthContainer.vue'
+import FooterBar from '@/components/layout/FooterBar.vue'
+import HeaderBar from '@/components/layout/HeaderBar.vue'
+import { verificarTotp } from '@/services/auth'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter() // Inicializamos el router
-const tokenInput = ref('') // Variable para el token
-const totalSeconds = ref(180)
+const router = useRouter()
+const tokenInput = ref('')
+const error = ref('')
+const cargando = ref(false)
 
-const minutes = computed(() => String(Math.floor(totalSeconds.value / 60)).padStart(2, '0'))
-const seconds = computed(() => String(totalSeconds.value % 60).padStart(2, '0'))
+// Lee el step que guardó el LoginView
+const step = ref(localStorage.getItem('totp_step') || 'verify')
+const qrImage = ref(localStorage.getItem('totp_qr') || '')
 
-// 4. Función para validar y navegar
-const handleValidateToken = () => {
-  // Como es solo front, validamos que no esté vacío
-  if (tokenInput.value.trim().length > 0) {
-    // Te manda a la ruta '/dashboard' que definimos en el router
+const handleValidateToken = async () => {
+  if (tokenInput.value.trim().length !== 6) {
+    error.value = 'El código debe tener 6 dígitos'
+    return
+  }
+
+  try {
+    cargando.value = true
+    error.value = ''
+
+    await verificarTotp(tokenInput.value)
+
+    // Limpia los datos temporales del localStorage
+    localStorage.removeItem('totp_step')
+    localStorage.removeItem('totp_qr')
+
     router.push('/dashboard')
-  } else {
-    alert('Por favor, ingresa el token recibido.')
+
+  } catch (e) {
+    error.value = 'Código incorrecto o expirado, intenta de nuevo'
+  } finally {
+    cargando.value = false
   }
 }
-
-onMounted(() => {
-  const interval = setInterval(() => {
-    if (totalSeconds.value > 0) {
-      totalSeconds.value--
-    } else {
-      clearInterval(interval)
-    }
-  }, 1000)
-})
 </script>
 
 <style scoped>
-/* Tu estilo se mantiene igual... */
 .token-message {
   font-size: 13px;
   color: #555;
-}
-.timer {
-  font-weight: bold;
-  color: #d32f2f;
 }
 .login-btn {
   background-color: #0071ce;
