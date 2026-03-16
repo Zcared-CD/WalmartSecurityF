@@ -5,7 +5,6 @@ export const login = async (username: string, password: string) => {
   localStorage.setItem('username', username)
   localStorage.setItem('totp_step', response.data.step)
 
-  // Si es primera vez, guarda el QR
   if (response.data.step === 'setup') {
     localStorage.setItem('totp_qr', response.data.qr)
   }

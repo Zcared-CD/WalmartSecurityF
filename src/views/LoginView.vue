@@ -80,7 +80,6 @@ const goToToken = async () => {
 
     const response = await login(username.value, password.value)
 
-    // Guarda el step que mandó el backend (setup o verify)
     localStorage.setItem('totp_step', response.step)
 
     router.push('/token')

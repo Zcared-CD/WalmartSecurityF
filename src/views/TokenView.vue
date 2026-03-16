@@ -4,13 +4,13 @@
 
     <AuthCard title="Verificación de acceso">
 
-      <!-- ── CASO 1: Primera vez → muestra QR ── -->
+
       <div v-if="step === 'setup'" class="text-center mb-3">
         <p class="token-message mb-3">
           Escanea este código QR con <strong>Google Authenticator</strong> para configurar tu acceso.
         </p>
 
-        <!-- QR generado por el backend -->
+
         <v-img
           v-if="qrImage"
           :src="`data:image/png;base64,${qrImage}`"
@@ -23,14 +23,12 @@
         </p>
       </div>
 
-      <!-- ── CASO 2: Ya configuró → pide código ── -->
       <div v-else class="text-center mb-3">
         <p class="token-message">
-          Ingresa el código de <strong>Google Authenticator</strong>.
+          Ingresa el código de <strong>Autenticacion</strong>.
         </p>
       </div>
 
-      <!-- Campo del código (aplica en ambos casos) -->
       <v-text-field
         v-model="tokenInput"
         label="Código"
