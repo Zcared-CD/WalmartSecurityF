@@ -1,5 +1,5 @@
-import api from './api'
 import { AxiosError } from 'axios'
+import api from './api'
 
 export interface Product {
   item_id: string
@@ -11,7 +11,7 @@ export interface Product {
 export async function getProducts() {
   try {
     const response = await api.get('/inventory/')
-    return response.data
+    return response.data.results
   } catch (error) {
     const err = error as AxiosError
     console.error('Error GET inventory:', err.response?.data || err.message)
