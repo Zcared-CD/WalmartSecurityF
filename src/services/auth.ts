@@ -1,5 +1,6 @@
 import api from './api'
 
+
 export const login = async (username: string, password: string) => {
   try {
     const response = await api.post('/api/login/', {
@@ -29,9 +30,6 @@ export const verificarTotp = async (codigo: string) => {
       username,
       codigo
     })
-
-    localStorage.setItem('access_token', response.data.access)
-    localStorage.setItem('refresh_token', response.data.refresh)
 
     localStorage.removeItem('totp_qr')
 

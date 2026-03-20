@@ -8,6 +8,7 @@ import { createVuetify } from 'vuetify'
 
 import App from './App.vue'
 import router from './router'
+import api from "@/services/api"
 
 const vuetify = createVuetify({
   theme: {
@@ -15,10 +16,20 @@ const vuetify = createVuetify({
   },
 })
 
-const app = createApp(App)
+async function bootstrap() {
+  try {
+    await api.get("/csrf/")
+  } catch (error) {
+    console.error("Error obteniendo CSRF", error)
+  }
 
-app.use(createPinia())
-app.use(router)
-app.use(vuetify)
+  const app = createApp(App)
 
-app.mount('#app')
+  app.use(createPinia())
+  app.use(router)
+  app.use(vuetify)
+
+  app.mount('#app')
+}
+
+bootstrap()
