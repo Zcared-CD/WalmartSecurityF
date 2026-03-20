@@ -5,6 +5,7 @@ import 'vuetify/styles'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
+import { initSessionTimeout } from "@/services/sessionTimeout"
 
 import App from './App.vue'
 import router from './router'
@@ -28,7 +29,7 @@ async function bootstrap() {
   app.use(createPinia())
   app.use(router)
   app.use(vuetify)
-
+  initSessionTimeout()
   app.mount('#app')
 }
 

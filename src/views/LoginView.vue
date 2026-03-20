@@ -84,7 +84,7 @@ const username = ref('')
 const password = ref('')
 const error = ref('')
 const cargando = ref(false)
-const mostrarPassword = ref(false) // Nueva variable para el ojo
+const mostrarPassword = ref(false)
 
 const goToToken = async () => {
   if (!username.value || !password.value) {
@@ -96,20 +96,35 @@ const goToToken = async () => {
     cargando.value = true
     error.value = ''
 
-    // Aquí es donde Vue "viaja" a Django y este a AWS
     const response = await login(username.value, password.value)
 
     localStorage.setItem('totp_step', response.step)
 
-    // Si todo sale bien, vamos al siguiente paso
     router.push('/token')
 
   } catch (e: any) {
-    // Si Django responde 400 o 401, caemos aquí
-    error.value = 'Usuario o contraseña incorrectos'
+
+    const data = e.response?.data
+
+    // 🔥 INTENTOS RESTANTES
+    if (data?.remaining_attempts !== undefined) {
+      error.value = `Te quedan ${data.remaining_attempts} intentos`
+    }
+
+    // 🔒 IP BLOQUEADA
+    else if (data?.blocked_until) {
+      const tiempo = new Date(data.blocked_until).toLocaleTimeString()
+      error.value = `IP bloqueada hasta ${tiempo}`
+    }
+
+    // ❌ ERROR NORMAL
+    else {
+      error.value = data?.error || 'Usuario o contraseña incorrectos'
+    }
+
     console.error("Error de autenticación:", e)
+
   } finally {
-    // Quitamos el spinner siempre, falle o gane
     cargando.value = false
   }
 }
