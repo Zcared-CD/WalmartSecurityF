@@ -102,12 +102,24 @@ const handleValidateToken = async () => {
 
     router.push('/dashboard')
 
-  } catch (e) {
-    error.value = 'Código incorrecto o expirado, intenta de nuevo'
-  } finally {
-    cargando.value = false
+  } catch (e: any) {
+  const mensaje = e.response?.data?.error
+
+  if (e.response?.status === 429) {
+
+    error.value = 'Demasiados intentos. Espera un momento e intenta de nuevo.'
+  } else if (e.response?.status === 403) {
+
+    error.value = mensaje || 'Acceso temporalmente bloqueado. Intenta más tarde.'
+  } else {
+
+    error.value = mensaje || 'Código incorrecto o expirado'
   }
+} finally {
+  cargando.value = false
 }
+}
+
 </script>
 
 <style scoped>
