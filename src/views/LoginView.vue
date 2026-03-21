@@ -113,7 +113,7 @@ const goToToken = async () => {
 
     // 🔒 IP BLOQUEADA
     else if (data?.blocked_until) {
-      const tiempo = new Date(data.blocked_until).toLocaleTimeString()
+      const tiempo = new Date(data.blocked_until).toLocaleString()
       error.value = `IP bloqueada hasta ${tiempo}`
     }
 

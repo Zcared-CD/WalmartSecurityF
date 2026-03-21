@@ -1,14 +1,25 @@
 import api from "@/services/api"
-import router from '@/router'
 
 let timeout: any
 
+const stopListeners = () => {
+    window.onload = null
+    document.onmousemove = null
+    document.onkeypress = null
+    document.onclick = null
+    document.onscroll = null
+}
+
 const logoutUser = async () => {
     try {
-        await api.post("/logout/")
+        await api.post("/api/logout/")
     } catch (e) { }
 
-    router.push('/login')
+    clearTimeout(timeout)
+    stopListeners()
+
+    // 🔥 CAMBIO CLAVE
+    window.location.href = '/login'
 }
 
 const resetTimer = () => {
@@ -17,7 +28,7 @@ const resetTimer = () => {
     timeout = setTimeout(() => {
         console.warn("Sesión expirada por inactividad")
         logoutUser()
-    }, 10 * 60 * 1000) // 10 minutos
+    }, 1 * 60 * 1000)
 }
 
 export const initSessionTimeout = () => {

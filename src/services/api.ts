@@ -37,7 +37,13 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('/api/check-session/') &&
+      !originalRequest.url.includes('/api/login/') &&
+      !originalRequest.url.includes('/api/logout/')
+    ) {
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

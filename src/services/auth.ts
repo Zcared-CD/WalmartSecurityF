@@ -1,5 +1,8 @@
 import api from './api'
+import { initSessionTimeout } from "@/services/sessionTimeout"
 
+
+let authCache: boolean | null = null
 
 export const login = async (username: string, password: string) => {
   try {
@@ -31,7 +34,11 @@ export const verificarTotp = async (codigo: string) => {
       codigo
     })
 
+    authCache = true
+
     localStorage.removeItem('totp_qr')
+
+    initSessionTimeout()
 
     return response.data
   } catch (error: any) {
@@ -40,13 +47,35 @@ export const verificarTotp = async (codigo: string) => {
   }
 }
 
-
 export const logout = async () => {
   try {
     await api.post('/api/logout/')
   } catch (error) {
     console.error("Error al cerrar sesión en el servidor:", error)
   } finally {
-    localStorage.clear()
+    authCache = null
+
+    localStorage.removeItem('username')
+    localStorage.removeItem('totp_step')
+    localStorage.removeItem('totp_qr')
+  }
+}
+
+export const checkSession = async () => {
+  if (authCache !== null) return authCache
+
+  try {
+    const response = await api.get('/api/check-session/')
+    authCache = response.data.authenticated
+    return authCache
+  } catch (error: any) {
+
+    // 🔥 ignorar 401 normal
+    if (error.response?.status !== 401) {
+      console.error("Error checkSession:", error)
+    }
+
+    authCache = false
+    return false
   }
 }
