@@ -30,7 +30,6 @@ export const verificarTotp = async (codigo: string) => {
 
   try {
     const response = await api.post('/api/verificar-totp/', {
-      username,
       codigo
     })
 

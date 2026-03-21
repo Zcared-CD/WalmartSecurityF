@@ -29,15 +29,13 @@ const processQueue = (error: any) => {
   failedQueue = []
 }
 
-// ✅ Función centralizada para limpiar y redirigir al login
 const forceLogout = () => {
   isRefreshing = false
   failedQueue = []
-  // Limpia cualquier dato local
+
   localStorage.removeItem('username')
   localStorage.removeItem('totp_step')
   localStorage.removeItem('totp_qr')
-  // Redirige al login
   window.location.href = '/'
 }
 
@@ -72,10 +70,24 @@ api.interceptors.response.use(
 
       } catch (err) {
         processQueue(err)
-        // ✅ Ahora sí redirige al login cuando la sesión expiró
-        forceLogout()
-        return Promise.reject(err)
 
+        console.error("Refresh expirado, cerrar sesión")
+
+        try {
+          // 🔔 NOTIFICAR BACKEND → DISCORD
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/session-expired/`,
+            {},
+            { withCredentials: true }
+          )
+        } catch (e) {
+          console.warn("No se pudo notificar sesión expirada")
+        }
+
+        // 🔥 REDIRIGIR AL LOGIN
+        window.location.href = "/login"
+
+        return Promise.reject(err)
       } finally {
         isRefreshing = false
       }
