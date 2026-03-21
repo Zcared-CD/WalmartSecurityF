@@ -93,7 +93,6 @@ const tokenInput = ref('')
 const error = ref('')
 const cargando = ref(false)
 
-<<<<<<< HEAD
 // 
 const tiempoRestante = ref('')
 let intervalo: any = null
@@ -101,12 +100,8 @@ let intervalo: any = null
 const estaBloqueado = computed(() => !!tiempoRestante.value)
 
 // Lee el step que guardó el LoginView
-const step = ref(localStorage.getItem('totp_step') || 'verify')
-const qrImage = ref(localStorage.getItem('totp_qr') || '')
-=======
 const step = ref(sessionStorage.getItem('totp_step') || 'verify')
 const qrImage = ref(sessionStorage.getItem('totp_qr') || '')
->>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
 
 // 
 const iniciarContador = (fecha: string) => {
@@ -127,11 +122,11 @@ const iniciarContador = (fecha: string) => {
     const minutos = Math.floor(diff / 60000)
     const segundos = Math.floor((diff % 60000) / 1000)
 
-    tiempoRestante.value = `⏳ Reintentar en ${minutos}:${segundos.toString().padStart(2, '0')}`
+    tiempoRestante.value = ` Reintentar en ${minutos}:${segundos.toString().padStart(2, '0')}`
   }, 1000)
 }
 
-// 🔥 LIMPIAR INTERVALO AL SALIR
+// LIMPIAR INTERVALO AL SALIR
 onUnmounted(() => {
   if (intervalo) clearInterval(intervalo)
 })
@@ -149,58 +144,35 @@ const handleValidateToken = async () => {
 
     await verificarTotp(tokenInput.value)
 
-<<<<<<< HEAD
     // Limpia datos temporales
-    localStorage.removeItem('totp_step')
-    localStorage.removeItem('totp_qr')
-=======
-    // Limpia los datos temporales del sessionStorage
     sessionStorage.removeItem('totp_step')
     sessionStorage.removeItem('totp_qr')
->>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
 
     router.push('/dashboard')
 
   } catch (e: any) {
-<<<<<<< HEAD
     const data = e.response?.data
 
-    // 🔒 BLOQUEO OTP
+    // BLOQUEO OTP
     if (data?.blocked_until) {
       error.value = 'Demasiados intentos OTP'
       iniciarContador(data.blocked_until)
     }
 
-    // ❌ CÓDIGO INCORRECTO
+    // CÓDIGO INCORRECTO
     else if (data?.error === "Código incorrecto") {
       error.value = `OTP incorrecto (Intento ${data.intentos})`
     }
 
-    // ⚠️ OTROS ERRORES
+    // OTROS ERRORES
     else {
       error.value = data?.error || 'Error al verificar el código'
     }
+
   } finally {
     cargando.value = false
-=======
-  const mensaje = e.response?.data?.error
-
-  if (e.response?.status === 429) {
-
-    error.value = 'Demasiados intentos. Espera un momento e intenta de nuevo.'
-  } else if (e.response?.status === 403) {
-
-    error.value = mensaje || 'Acceso temporalmente bloqueado. Intenta más tarde.'
-  } else {
-
-    error.value = mensaje || 'Código incorrecto o expirado'
->>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
   }
-} finally {
-  cargando.value = false
 }
-}
-
 </script>
 
 <style scoped>

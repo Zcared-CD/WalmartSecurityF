@@ -29,15 +29,13 @@ const processQueue = (error: any) => {
   failedQueue = []
 }
 
-// ✅ Función centralizada para limpiar y redirigir al login
 const forceLogout = () => {
   isRefreshing = false
   failedQueue = []
-  // Limpia cualquier dato local
+
   localStorage.removeItem('username')
   localStorage.removeItem('totp_step')
   localStorage.removeItem('totp_qr')
-  // Redirige al login
   window.location.href = '/'
 }
 
@@ -72,7 +70,6 @@ api.interceptors.response.use(
 
       } catch (err) {
         processQueue(err)
-<<<<<<< HEAD
 
         console.error("Refresh expirado, cerrar sesión")
 
@@ -90,10 +87,6 @@ api.interceptors.response.use(
         // 🔥 REDIRIGIR AL LOGIN
         window.location.href = "/login"
 
-=======
-        // ✅ Ahora sí redirige al login cuando la sesión expiró
-        forceLogout()
->>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
         return Promise.reject(err)
       } finally {
         isRefreshing = false
