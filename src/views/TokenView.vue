@@ -7,7 +7,7 @@
 
       <div v-if="step === 'setup'" class="text-center mb-3">
         <p class="token-message mb-3">
-          Escanea este código QR con <strong>Google Authenticator</strong> para configurar tu acceso.
+          Escanea este código QR con <strong>Un authenticator</strong> para configurar tu acceso.
         </p>
 
 

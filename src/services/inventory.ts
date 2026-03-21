@@ -8,12 +8,34 @@ export interface Product {
   quantity_in_stock: number
 }
 
+export interface UserRol {
+  username: string
+  roles: string[]
+  is_admin: boolean
+  is_gerente: boolean
+  is_empleado: boolean
+}
+
+export async function getMiRol(): Promise<UserRol> {
+  try {
+    const response = await api.get('/api/mi-rol/')
+    return response.data
+  } catch (error) {
+    const err = error as AxiosError
+    console.error('Error GET rol:', err.response?.data || err.message)
+    throw err
+  }
+}
+
 export async function getProducts() {
   try {
     const response = await api.get('/inventory/')
     return response.data.results
   } catch (error) {
     const err = error as AxiosError
+    if (err.response?.status === 403) {
+      throw new Error('SIN_PERMISO')
+    }
     console.error('Error GET inventory:', err.response?.data || err.message)
     throw err
   }
@@ -25,6 +47,9 @@ export async function createProduct(product: Omit<Product, 'item_id'>) {
     return response.data
   } catch (error) {
     const err = error as AxiosError
+    if (err.response?.status === 403) {
+      throw new Error('SIN_PERMISO')
+    }
     console.error('Error CREATE product:', err.response?.data || err.message)
     throw err
   }
@@ -36,6 +61,9 @@ export async function updateProduct(id: string, product: Partial<Product>) {
     return response.data
   } catch (error) {
     const err = error as AxiosError
+    if (err.response?.status === 403) {
+      throw new Error('SIN_PERMISO')
+    }
     console.error('Error UPDATE product:', err.response?.data || err.message)
     throw err
   }
@@ -47,6 +75,9 @@ export async function deleteProduct(id: string) {
     return response.data
   } catch (error) {
     const err = error as AxiosError
+    if (err.response?.status === 403) {
+      throw new Error('SIN_PERMISO')
+    }
     console.error('Error DELETE product:', err.response?.data || err.message)
     throw err
   }
