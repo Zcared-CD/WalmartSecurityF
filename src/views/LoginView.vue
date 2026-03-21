@@ -98,7 +98,8 @@ const goToToken = async () => {
 
     const response = await login(username.value, password.value)
 
-    localStorage.setItem('totp_step', response.step)
+
+    void response
 
     router.push('/token')
 

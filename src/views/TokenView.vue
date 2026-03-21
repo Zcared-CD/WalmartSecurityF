@@ -81,9 +81,8 @@ const tokenInput = ref('')
 const error = ref('')
 const cargando = ref(false)
 
-// Lee el step que guardó el LoginView
-const step = ref(localStorage.getItem('totp_step') || 'verify')
-const qrImage = ref(localStorage.getItem('totp_qr') || '')
+const step = ref(sessionStorage.getItem('totp_step') || 'verify')
+const qrImage = ref(sessionStorage.getItem('totp_qr') || '')
 
 const handleValidateToken = async () => {
   if (tokenInput.value.trim().length !== 6) {
@@ -97,9 +96,9 @@ const handleValidateToken = async () => {
 
     await verificarTotp(tokenInput.value)
 
-    // Limpia los datos temporales del localStorage
-    localStorage.removeItem('totp_step')
-    localStorage.removeItem('totp_qr')
+    // Limpia los datos temporales del sessionStorage
+    sessionStorage.removeItem('totp_step')
+    sessionStorage.removeItem('totp_qr')
 
     router.push('/dashboard')
 
