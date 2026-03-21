@@ -16,7 +16,7 @@
         hide-details="auto"
       />
 
-      <!-- Contraseña con Ojo para ver -->
+     
       <v-text-field
         v-model="password"
         label="Contraseña"
@@ -33,7 +33,7 @@
         hide-details="auto"
       />
 
-      <!-- Mensaje de error -->
+      <!-- Error -->
       <v-alert
         v-if="error"
         type="error"
@@ -44,24 +44,35 @@
         {{ error }}
       </v-alert>
 
-      <!-- Botón con Spinner (loading) -->
+      
+      <v-alert
+        v-if="tiempoRestante"
+        type="warning"
+        variant="tonal"
+        class="mb-3"
+        density="compact"
+      >
+        {{ tiempoRestante }}
+      </v-alert>
+
+      <!-- Botón -->
       <v-btn
         block
         size="large"
         class="login-btn"
         :loading="cargando"
-        :disabled="cargando"
+        :disabled="cargando || estaBloqueado"
         @click="goToToken"
       >
         INICIAR SESIÓN
-        <!-- Personalización del spinner si deseas -->
+
         <template v-slot:loader>
           <v-progress-circular
             indeterminate
             color="white"
             size="22"
             width="2"
-          ></v-progress-circular>
+          />
         </template>
       </v-btn>
     </AuthCard>
@@ -75,7 +86,7 @@ import AuthCard from '@/components/auth/AuthContainer.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
 import { login } from '@/services/auth'
-import { ref } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -85,6 +96,41 @@ const password = ref('')
 const error = ref('')
 const cargando = ref(false)
 const mostrarPassword = ref(false)
+
+
+const tiempoRestante = ref('')
+let intervalo: any = null
+
+const estaBloqueado = computed(() => !!tiempoRestante.value)
+
+
+const iniciarContador = (fecha: string) => {
+  if (intervalo) clearInterval(intervalo)
+
+  const fin = new Date(fecha).getTime()
+
+  intervalo = setInterval(() => {
+    const ahora = new Date().getTime()
+    const diff = fin - ahora
+
+    if (diff <= 0) {
+      clearInterval(intervalo)
+      tiempoRestante.value = ''
+      return
+    }
+
+    const minutos = Math.floor(diff / 60000)
+    const segundos = Math.floor((diff % 60000) / 1000)
+
+    tiempoRestante.value = `Reintentar en ${minutos}:${segundos
+      .toString()
+      .padStart(2, '0')}`
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (intervalo) clearInterval(intervalo)
+})
 
 const goToToken = async () => {
   if (!username.value || !password.value) {
@@ -97,30 +143,36 @@ const goToToken = async () => {
     error.value = ''
 
     const response = await login(username.value, password.value)
-
-
     void response
 
     router.push('/token')
 
   } catch (e: any) {
-
+    const status = e.response?.status
     const data = e.response?.data
 
-    // 🔥 INTENTOS RESTANTES
-    if (data?.remaining_attempts !== undefined) {
-      error.value = `Te quedan ${data.remaining_attempts} intentos`
+    if (status === 400) {
+      error.value = data?.error || 'Credenciales incorrectas'
+
+      if (data?.remaining_attempts !== undefined) {
+        error.value += ` (Te quedan ${data.remaining_attempts} intentos)`
+      }
     }
 
-    // 🔒 IP BLOQUEADA
-    else if (data?.blocked_until) {
-      const tiempo = new Date(data.blocked_until).toLocaleString()
-      error.value = `IP bloqueada hasta ${tiempo}`
+    else if (status === 403) {
+      error.value = 'Acceso temporalmente restringido'
+
+      if (data?.blocked_until) {
+        iniciarContador(data.blocked_until)
+      }
     }
 
-    // ❌ ERROR NORMAL
+    else if (status === 429) {
+      error.value = 'Demasiados intentos. Intenta más tarde'
+    }
+
     else {
-      error.value = data?.error || 'Usuario o contraseña incorrectos'
+      error.value = 'Error inesperado'
     }
 
     console.error("Error de autenticación:", e)
@@ -146,7 +198,6 @@ const goToToken = async () => {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Estilo para cuando el botón está deshabilitado o cargando */
 .v-btn--disabled {
   opacity: 0.8 !important;
 }
