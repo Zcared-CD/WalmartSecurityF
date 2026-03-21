@@ -11,11 +11,11 @@ export const login = async (username: string, password: string) => {
       password: password
     })
 
-    localStorage.setItem('username', username.trim())
-    localStorage.setItem('totp_step', response.data.step)
+    sessionStorage.setItem('username', username.trim())
+    sessionStorage.setItem('totp_step', response.data.step)
 
     if (response.data.step === 'setup') {
-      localStorage.setItem('totp_qr', response.data.qr)
+      sessionStorage.setItem('totp_qr', response.data.qr)
     }
 
     return response.data
@@ -26,6 +26,8 @@ export const login = async (username: string, password: string) => {
 }
 
 export const verificarTotp = async (codigo: string) => {
+  const username = sessionStorage.getItem('username')
+
   try {
     const response = await api.post('/api/verificar-totp/', {
       codigo
@@ -33,7 +35,7 @@ export const verificarTotp = async (codigo: string) => {
 
     authCache = true
 
-    localStorage.removeItem('totp_qr')
+    sessionStorage.removeItem('totp_qr')
 
     initSessionTimeout()
 
@@ -52,9 +54,9 @@ export const logout = async () => {
   } finally {
     authCache = null
 
-    localStorage.removeItem('username')
-    localStorage.removeItem('totp_step')
-    localStorage.removeItem('totp_qr')
+    sessionStorage.removeItem('username')
+    sessionStorage.removeItem('totp_step')
+    sessionStorage.removeItem('totp_qr')
   }
 }
 

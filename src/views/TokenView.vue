@@ -7,7 +7,7 @@
 
       <div v-if="step === 'setup'" class="text-center mb-3">
         <p class="token-message mb-3">
-          Escanea este código QR con <strong>Google Authenticator</strong> para configurar tu acceso.
+          Escanea este código QR con <strong>Un authenticator</strong> para configurar tu acceso.
         </p>
 
 
@@ -93,6 +93,7 @@ const tokenInput = ref('')
 const error = ref('')
 const cargando = ref(false)
 
+<<<<<<< HEAD
 // 
 const tiempoRestante = ref('')
 let intervalo: any = null
@@ -102,6 +103,10 @@ const estaBloqueado = computed(() => !!tiempoRestante.value)
 // Lee el step que guardó el LoginView
 const step = ref(localStorage.getItem('totp_step') || 'verify')
 const qrImage = ref(localStorage.getItem('totp_qr') || '')
+=======
+const step = ref(sessionStorage.getItem('totp_step') || 'verify')
+const qrImage = ref(sessionStorage.getItem('totp_qr') || '')
+>>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
 
 // 
 const iniciarContador = (fecha: string) => {
@@ -144,13 +149,20 @@ const handleValidateToken = async () => {
 
     await verificarTotp(tokenInput.value)
 
+<<<<<<< HEAD
     // Limpia datos temporales
     localStorage.removeItem('totp_step')
     localStorage.removeItem('totp_qr')
+=======
+    // Limpia los datos temporales del sessionStorage
+    sessionStorage.removeItem('totp_step')
+    sessionStorage.removeItem('totp_qr')
+>>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
 
     router.push('/dashboard')
 
   } catch (e: any) {
+<<<<<<< HEAD
     const data = e.response?.data
 
     // 🔒 BLOQUEO OTP
@@ -170,8 +182,25 @@ const handleValidateToken = async () => {
     }
   } finally {
     cargando.value = false
+=======
+  const mensaje = e.response?.data?.error
+
+  if (e.response?.status === 429) {
+
+    error.value = 'Demasiados intentos. Espera un momento e intenta de nuevo.'
+  } else if (e.response?.status === 403) {
+
+    error.value = mensaje || 'Acceso temporalmente bloqueado. Intenta más tarde.'
+  } else {
+
+    error.value = mensaje || 'Código incorrecto o expirado'
+>>>>>>> fc5452bda3251b19c7ecd70a308cd0a75b855863
   }
+} finally {
+  cargando.value = false
 }
+}
+
 </script>
 
 <style scoped>
