@@ -84,16 +84,15 @@ import AuthCard from '@/components/auth/AuthContainer.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
 import { verificarTotp } from '@/services/auth'
-import { ref, onUnmounted } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-import { computed } from 'vue'
 const tokenInput = ref('')
 const error = ref('')
 const cargando = ref(false)
 
-// 
+//
 const tiempoRestante = ref('')
 let intervalo: any = null
 
@@ -103,7 +102,7 @@ const estaBloqueado = computed(() => !!tiempoRestante.value)
 const step = ref(sessionStorage.getItem('totp_step') || 'verify')
 const qrImage = ref(sessionStorage.getItem('totp_qr') || '')
 
-// 
+//
 const iniciarContador = (fecha: string) => {
   if (intervalo) clearInterval(intervalo)
 
@@ -152,6 +151,11 @@ const handleValidateToken = async () => {
 
   } catch (e: any) {
     const data = e.response?.data
+
+
+    if (e.response?.status === 429) {
+      error.value = 'Demasiados intentos'
+    }
 
     // BLOQUEO OTP
     if (data?.blocked_until) {
