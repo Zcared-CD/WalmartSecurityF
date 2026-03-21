@@ -66,10 +66,21 @@ api.interceptors.response.use(
 
         console.error("Refresh expirado, cerrar sesión")
 
+        try {
+          // 🔔 NOTIFICAR BACKEND → DISCORD
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/session-expired/`,
+            {},
+            { withCredentials: true }
+          )
+        } catch (e) {
+          console.warn("No se pudo notificar sesión expirada")
+        }
 
+        // 🔥 REDIRIGIR AL LOGIN
+        window.location.href = "/login"
 
         return Promise.reject(err)
-
       } finally {
         isRefreshing = false
       }

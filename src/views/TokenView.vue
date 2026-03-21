@@ -38,7 +38,7 @@
         color="blue-darken-2"
         class="mb-3"
         maxlength="6"
-        :disabled="cargando"
+        :disabled="cargando || !!tiempoRestante"
       />
 
       <!-- Mensaje de error -->
@@ -52,11 +52,22 @@
         {{ error }}
       </v-alert>
 
+      <v-alert
+  v-if="tiempoRestante"
+  type="warning"
+  variant="tonal"
+  class="mb-3"
+  density="compact"
+>
+  {{ tiempoRestante }}
+</v-alert>
+
       <v-btn
         block
         size="large"
         class="login-btn"
         :loading="cargando"
+        :disabled="cargando || estaBloqueado"
         @click="handleValidateToken"
       >
         VALIDAR TOKEN
@@ -73,17 +84,52 @@ import AuthCard from '@/components/auth/AuthContainer.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
 import { verificarTotp } from '@/services/auth'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+import { computed } from 'vue'
 const tokenInput = ref('')
 const error = ref('')
 const cargando = ref(false)
 
+// 
+const tiempoRestante = ref('')
+let intervalo: any = null
+
+const estaBloqueado = computed(() => !!tiempoRestante.value)
+
 // Lee el step que guardó el LoginView
 const step = ref(localStorage.getItem('totp_step') || 'verify')
 const qrImage = ref(localStorage.getItem('totp_qr') || '')
+
+// 
+const iniciarContador = (fecha: string) => {
+  if (intervalo) clearInterval(intervalo)
+
+  const fin = new Date(fecha).getTime()
+
+  intervalo = setInterval(() => {
+    const ahora = new Date().getTime()
+    const diff = fin - ahora
+
+    if (diff <= 0) {
+      clearInterval(intervalo)
+      tiempoRestante.value = ''
+      return
+    }
+
+    const minutos = Math.floor(diff / 60000)
+    const segundos = Math.floor((diff % 60000) / 1000)
+
+    tiempoRestante.value = `⏳ Reintentar en ${minutos}:${segundos.toString().padStart(2, '0')}`
+  }, 1000)
+}
+
+// 🔥 LIMPIAR INTERVALO AL SALIR
+onUnmounted(() => {
+  if (intervalo) clearInterval(intervalo)
+})
 
 const handleValidateToken = async () => {
   if (tokenInput.value.trim().length !== 6) {
@@ -94,17 +140,34 @@ const handleValidateToken = async () => {
   try {
     cargando.value = true
     error.value = ''
+    tiempoRestante.value = ''
 
     await verificarTotp(tokenInput.value)
 
-    // Limpia los datos temporales del localStorage
+    // Limpia datos temporales
     localStorage.removeItem('totp_step')
     localStorage.removeItem('totp_qr')
 
     router.push('/dashboard')
 
-  } catch (e) {
-    error.value = 'Código incorrecto o expirado, intenta de nuevo'
+  } catch (e: any) {
+    const data = e.response?.data
+
+    // 🔒 BLOQUEO OTP
+    if (data?.blocked_until) {
+      error.value = 'Demasiados intentos OTP'
+      iniciarContador(data.blocked_until)
+    }
+
+    // ❌ CÓDIGO INCORRECTO
+    else if (data?.error === "Código incorrecto") {
+      error.value = `OTP incorrecto (Intento ${data.intentos})`
+    }
+
+    // ⚠️ OTROS ERRORES
+    else {
+      error.value = data?.error || 'Error al verificar el código'
+    }
   } finally {
     cargando.value = false
   }

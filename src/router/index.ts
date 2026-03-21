@@ -36,17 +36,13 @@ import { checkSession } from '@/services/auth'
 router.beforeEach(async (to, from) => {
   const isAuth = await checkSession()
 
-  // 🔒 si requiere auth y NO está logueado
   if (to.meta.requiresAuth && !isAuth) {
     return '/login'
   }
 
-  // 🚫 si está logueado y quiere ir a login
   if (!to.meta.requiresAuth && isAuth && to.path !== '/dashboard') {
     return '/dashboard'
   }
-
-  // ✅ permitir navegación
   return true
 })
 

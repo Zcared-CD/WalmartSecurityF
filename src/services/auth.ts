@@ -26,11 +26,8 @@ export const login = async (username: string, password: string) => {
 }
 
 export const verificarTotp = async (codigo: string) => {
-  const username = localStorage.getItem('username')
-
   try {
     const response = await api.post('/api/verificar-totp/', {
-      username,
       codigo
     })
 
