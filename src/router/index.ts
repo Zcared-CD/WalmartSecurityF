@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import TokenView from '../views/TokenView.vue'
 import DashboardView from '../views/DashboardView.vue'
+import { checkSession } from '@/services/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,7 +21,7 @@ const router = createRouter({
       path: '/token',
       name: 'token',
       component: TokenView,
-      meta: { requiresAuth: false },
+      meta: { requiresAuth: false, requiresLoginStep: true },
     },
     {
       path: '/dashboard',
@@ -31,13 +32,24 @@ const router = createRouter({
   ],
 })
 
-import { checkSession } from '@/services/auth'
-
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to, _from) => {
   const isAuth = await checkSession()
+  const totpPending = localStorage.getItem('totp_step')
 
   if (to.meta.requiresAuth && !isAuth) {
     return '/login'
+  }
+
+  if (to.meta.requiresLoginStep && !totpPending) {
+    return '/login'
+  }
+
+  if (to.path === '/token' && isAuth) {
+    return '/dashboard'
+  }
+
+  if (!to.meta.requiresAuth && isAuth && to.path === '/login') {
+    return '/dashboard'
   }
 
   if (!to.meta.requiresAuth && isAuth && to.path !== '/dashboard') {
