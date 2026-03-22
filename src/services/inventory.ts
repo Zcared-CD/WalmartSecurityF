@@ -69,15 +69,18 @@ export async function updateProduct(id: string, product: Partial<Product>) {
   }
 }
 
-export async function deleteProduct(id: string) {
+export async function deleteProduct(id: string, config = {}) {
   try {
-    const response = await api.delete(`/inventory/${id}/`)
+    const response = await api.delete(`/inventory/${id}/`, config)
     return response.data
   } catch (error) {
     const err = error as AxiosError
+
+    // 🔴 NO interceptar 403 → dejar que el frontend lo maneje
     if (err.response?.status === 403) {
-      throw new Error('SIN_PERMISO')
+      throw err
     }
+
     console.error('Error DELETE product:', err.response?.data || err.message)
     throw err
   }

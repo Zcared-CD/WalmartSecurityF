@@ -79,3 +79,11 @@ export const checkSession = async () => {
     return false
   }
 }
+
+export const verifyCritical = async (codigo: string) => {
+  const response = await api.post('/api/verify-critical/', {
+    codigo
+  })
+
+  return response.data.critical_token
+}

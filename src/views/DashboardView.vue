@@ -65,6 +65,11 @@
       @confirm="deleteProduct"
     />
 
+    <CriticalOtpDialog
+      v-model="otpDialog"
+      @success="handleOtpSuccess"
+    />
+
     <FooterBar />
   </v-app>
 </template>
@@ -75,6 +80,8 @@ import ProductDialog from '@/components/dashboard/ProductDialog.vue'
 import ProductTable from '@/components/dashboard/ProductTable.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
+import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
+import { verifyCritical } from "@/services/auth"
 import {
   deleteProduct as apiDeleteProduct,
   createProduct,
@@ -97,6 +104,9 @@ const dialogDelete = ref(false)
 const isEdit = ref(false)
 const sinAcceso = ref(false)
 const products = ref<Product[]>([])
+
+const otpDialog = ref(false)
+let pendingAction: null | (() => Promise<void>) = null
 
 // ── Roles del usuario ──
 const userRol = ref({ is_admin: false, is_gerente: false, is_empleado: false, roles: [] as string[] })
@@ -190,16 +200,53 @@ const saveProduct = async (productData: Product) => {
   }
 }
 
-const deleteProduct = async () => {
+const handleOtpSuccess = async (codigo: string) => {
+  if (!pendingAction) return
+
   try {
-    if (editedItem.value.id) {
-      await apiDeleteProduct(editedItem.value.id)
-    }
-    products.value = products.value.filter((p) => p.id !== editedItem.value.id)
+    const token = await verifyCritical(codigo)
+
+    await pendingAction(token)
+
+  } catch (err) {
+    alert("Código inválido")
+  }
+
+  pendingAction = null
+}
+
+const deleteProduct = async () => {
+  const id = editedItem.value.id
+  if (!id) return
+
+  try {
+    await apiDeleteProduct(id)
+
+    products.value = products.value.filter((p) => p.id !== id)
     dialogDelete.value = false
+
   } catch (error: any) {
-    if (error.message === 'SIN_PERMISO') {
-      alert('No tienes permisos para eliminar productos')
+
+    if (error.response?.status === 403) {
+
+      // 🔥 Guardamos acción pendiente
+      pendingAction = async (token?: string) => {
+        await apiDeleteProduct(id, {
+          headers: {
+            "X-Critical-Token": token
+          }
+        })
+
+        products.value = products.value.filter((p) => p.id !== id)
+        dialogDelete.value = false
+      }
+
+      otpDialog.value = true
+
+    } else if (error.message === 'SIN_PERMISO') {
+      alert('No tienes permisos')
+    } else {
+      console.error(error)
     }
   }
 }
