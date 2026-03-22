@@ -34,7 +34,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from) => {
   const isAuth = await checkSession()
-  const totpPending = localStorage.getItem('totp_step')
+  const totpPending = sessionStorage.getItem('totp_step')
 
   if (to.meta.requiresAuth && !isAuth) {
     return '/login'
@@ -52,9 +52,6 @@ router.beforeEach(async (to, _from) => {
     return '/dashboard'
   }
 
-  if (!to.meta.requiresAuth && isAuth && to.path !== '/dashboard') {
-    return '/dashboard'
-  }
   return true
 })
 
