@@ -14,16 +14,24 @@ export default defineConfig({
     },
   },
 
-  // AQUÍ VA EL PROXY
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
+      },
+      '/refresh': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/csrf': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/inventory': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     }
   }
 })
-
-

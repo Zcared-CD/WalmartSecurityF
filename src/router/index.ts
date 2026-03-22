@@ -52,9 +52,6 @@ router.beforeEach(async (to, _from) => {
     return '/dashboard'
   }
 
-  if (!to.meta.requiresAuth && isAuth && to.path !== '/dashboard') {
-    return '/dashboard'
-  }
   return true
 })
 
