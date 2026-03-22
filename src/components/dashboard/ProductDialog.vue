@@ -46,7 +46,7 @@
         <v-btn color="grey" variant="text" @click="$emit('update:modelValue', false)"
           >Cancelar</v-btn
         >
-        <v-btn color="blue-darken-2" variant="elevated" @click="$emit('save', localItem)"
+        <v-btn color="blue-darken-2" variant="elevated" @click="handleSave"
           >Guardar</v-btn
         >
       </v-card-actions>
@@ -67,11 +67,10 @@ interface Product {
 
 const props = defineProps<{
   modelValue: boolean
-  item: Product // <--- Cambiamos unknown por Product
+  item: Product
   isEdit: boolean
 }>()
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits(['update:modelValue', 'save'])
 
 // 2. Inicializamos con la interface
@@ -83,4 +82,15 @@ watch(
     localItem.value = { ...newVal }
   },
 )
+
+// 3. Sanitización antes de emitir
+const handleSave = () => {
+  const sanitized: Product = {
+    ...localItem.value,
+    name: localItem.value.name.trim().slice(0, 255),
+    price: Math.max(0.01, Math.min(100000, Number(localItem.value.price))),
+    stock: Math.max(0, Math.min(200, Math.floor(Number(localItem.value.stock)))),
+  }
+  emit('save', sanitized)
+}
 </script>

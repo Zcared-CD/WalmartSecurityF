@@ -16,7 +16,6 @@
         hide-details="auto"
       />
 
-
       <v-text-field
         v-model="password"
         label="Contraseña"
@@ -108,12 +107,10 @@ const error = ref('')
 const cargando = ref(false)
 const mostrarPassword = ref(false)
 
-
 const tiempoRestante = ref('')
 let intervalo: any = null
 
 const estaBloqueado = computed(() => !!tiempoRestante.value)
-
 
 const iniciarContador = (fecha: string) => {
   if (intervalo) clearInterval(intervalo)
@@ -149,16 +146,20 @@ const goToToken = async () => {
     return
   }
 
-    if (!turnstileToken.value) {
+  if (!turnstileToken.value) {
     error.value = 'Por favor completa la verificación'
     return
   }
+
+  // Sanitización antes de enviar
+  const cleanUsername = username.value.trim().slice(0, 150)
+  const cleanPassword = password.value.slice(0, 128)
 
   try {
     cargando.value = true
     error.value = ''
 
-    const response = await login(username.value, password.value, turnstileToken.value)
+    const response = await login(cleanUsername, cleanPassword, turnstileToken.value)
     void response
 
     router.push('/token')
