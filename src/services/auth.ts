@@ -4,11 +4,12 @@ import { initSessionTimeout } from "@/services/sessionTimeout"
 
 let authCache: boolean | null = null
 
-export const login = async (username: string, password: string) => {
+export const login = async (username: string, password: string, turnstileToken: string) => {
   try {
     const response = await api.post('/api/login/', {
       username: username.trim(),
-      password: password
+      password: password,
+      cf_turnstile_response: turnstileToken,
     })
 
     sessionStorage.setItem('username', username.trim())

@@ -16,7 +16,7 @@
         hide-details="auto"
       />
 
-     
+
       <v-text-field
         v-model="password"
         label="Contraseña"
@@ -44,7 +44,14 @@
         {{ error }}
       </v-alert>
 
-      
+      <div class="mb-3">
+        <vue-turnstile
+          :site-key="siteKey"
+          v-model="turnstileToken"
+          theme="light"
+        />
+      </div>
+
       <v-alert
         v-if="tiempoRestante"
         type="warning"
@@ -88,6 +95,10 @@ import HeaderBar from '@/components/layout/HeaderBar.vue'
 import { login } from '@/services/auth'
 import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import VueTurnstile from 'vue-turnstile'
+
+const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+const turnstileToken = ref('')
 
 const router = useRouter()
 
@@ -138,11 +149,16 @@ const goToToken = async () => {
     return
   }
 
+    if (!turnstileToken.value) {
+    error.value = 'Por favor completa la verificación'
+    return
+  }
+
   try {
     cargando.value = true
     error.value = ''
 
-    const response = await login(username.value, password.value)
+    const response = await login(username.value, password.value, turnstileToken.value)
     void response
 
     router.push('/token')
