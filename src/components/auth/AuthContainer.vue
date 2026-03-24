@@ -14,7 +14,6 @@
           <h3 class="walmart-mx">Walmart México</h3>
         </div>
 
-        <!-- Aquí se inyecta el contenido dinámico -->
         <slot />
       </v-card>
     </v-container>

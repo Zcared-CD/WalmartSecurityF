@@ -76,7 +76,7 @@ export async function deleteProduct(id: string, config = {}) {
   } catch (error) {
     const err = error as AxiosError
 
-    // 🔴 NO interceptar 403 → dejar que el frontend lo maneje
+
     if (err.response?.status === 403) {
       throw err
     }

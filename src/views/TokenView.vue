@@ -41,7 +41,6 @@
         :disabled="cargando || !!tiempoRestante"
       />
 
-      <!-- Mensaje de error -->
       <v-alert
         v-if="error"
         type="error"
@@ -92,17 +91,16 @@ const tokenInput = ref('')
 const error = ref('')
 const cargando = ref(false)
 
-//
+
 const tiempoRestante = ref('')
 let intervalo: any = null
 
 const estaBloqueado = computed(() => !!tiempoRestante.value)
 
-// Lee el step que guardó el LoginView
+
 const step = ref(sessionStorage.getItem('totp_step') || 'verify')
 const qrImage = ref(sessionStorage.getItem('totp_qr') || '')
 
-//
 const iniciarContador = (fecha: string) => {
   if (intervalo) clearInterval(intervalo)
 
@@ -125,7 +123,7 @@ const iniciarContador = (fecha: string) => {
   }, 1000)
 }
 
-// LIMPIAR INTERVALO AL SALIR
+
 onUnmounted(() => {
   if (intervalo) clearInterval(intervalo)
 })
@@ -143,7 +141,7 @@ const handleValidateToken = async () => {
 
     await verificarTotp(tokenInput.value)
 
-    // Limpia datos temporales
+
     sessionStorage.removeItem('totp_step')
     sessionStorage.removeItem('totp_qr')
 
@@ -157,18 +155,18 @@ const handleValidateToken = async () => {
       error.value = 'Demasiados intentos'
     }
 
-    // BLOQUEO OTP
+
     if (data?.blocked_until) {
       error.value = 'Demasiados intentos OTP'
       iniciarContador(data.blocked_until)
     }
 
-    // CÓDIGO INCORRECTO
+
     else if (data?.error === "Código incorrecto") {
       error.value = `OTP incorrecto (Intento ${data.intentos})`
     }
 
-    // OTROS ERRORES
+
     else {
       error.value = data?.error || 'Error al verificar el código'
     }

@@ -92,7 +92,7 @@ import AuthCard from '@/components/auth/AuthContainer.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
 import { login } from '@/services/auth'
-import { ref, computed, onUnmounted } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VueTurnstile from 'vue-turnstile'
 
@@ -151,7 +151,7 @@ const goToToken = async () => {
     return
   }
 
-  // Sanitización antes de enviar
+
   const cleanUsername = username.value.trim().slice(0, 150)
   const cleanPassword = password.value.slice(0, 128)
 

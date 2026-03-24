@@ -4,7 +4,7 @@
     <v-main class="bg-grey-lighten-4">
       <v-container>
 
-        <!-- Alerta sin permisos -->
+
         <v-alert
           v-if="sinAcceso"
           type="error"
@@ -22,7 +22,6 @@
             </p>
           </v-col>
           <v-col cols="auto">
-            <!-- Solo Gerente y Admin pueden crear -->
             <v-btn
               v-if="puedeEditar"
               color="blue-darken-2"
@@ -108,10 +107,10 @@ const products = ref<Product[]>([])
 const otpDialog = ref(false)
 let pendingAction: null | (() => Promise<void>) = null
 
-// ── Roles del usuario ──
+
 const userRol = ref({ is_admin: false, is_gerente: false, is_empleado: false, roles: [] as string[] })
 
-// ── Permisos calculados ──
+
 const puedeEditar = computed(() => userRol.value.is_admin || userRol.value.is_gerente)
 const puedeEliminar = computed(() => userRol.value.is_admin)
 
@@ -120,11 +119,11 @@ const editedItem = ref<Product>({ ...defaultItem })
 
 onMounted(async () => {
   try {
-    // 1. Obtiene el rol del usuario
+
     const rol = await getMiRol()
     userRol.value = rol
 
-    // 2. Carga productos solo si tiene al menos un rol
+
     if (rol.roles.length === 0) {
       sinAcceso.value = true
       return
@@ -229,7 +228,7 @@ const deleteProduct = async () => {
 
     if (error.response?.status === 403) {
 
-      // 🔥 Guardamos acción pendiente
+
       pendingAction = async (token?: string) => {
         await apiDeleteProduct(id, {
           headers: {

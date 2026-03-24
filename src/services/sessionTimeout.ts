@@ -18,7 +18,7 @@ const logoutUser = async () => {
     clearTimeout(timeout)
     stopListeners()
 
-    // 🔥 CAMBIO CLAVE
+
     window.location.href = '/login'
 }
 

@@ -17,7 +17,7 @@ api.interceptors.request.use((config) => {
 let isRefreshing = false
 let failedQueue: any[] = []
 
-// ✅ Ahora procesa la cola con éxito o error claramente
+
 const processQueue = (error: any) => {
   failedQueue.forEach(prom => {
     if (error) {
@@ -74,7 +74,6 @@ api.interceptors.response.use(
         console.error("Refresh expirado, cerrar sesión")
 
         try {
-          // 🔔 NOTIFICAR BACKEND → DISCORD
           await axios.post(
             `${import.meta.env.VITE_API_URL}/session-expired/`,
             {},
@@ -84,7 +83,6 @@ api.interceptors.response.use(
           console.warn("No se pudo notificar sesión expirada")
         }
 
-        // 🔥 REDIRIGIR AL LOGIN
         window.location.href = "/login"
 
         return Promise.reject(err)

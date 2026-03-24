@@ -1,5 +1,5 @@
-import api from './api'
 import { initSessionTimeout } from "@/services/sessionTimeout"
+import api from './api'
 
 
 let authCache: boolean | null = null
@@ -70,7 +70,7 @@ export const checkSession = async () => {
     return authCache
   } catch (error: any) {
 
-    // 🔥 ignorar 401 normal
+
     if (error.response?.status !== 401) {
       console.error("Error checkSession:", error)
     }
