@@ -28,7 +28,7 @@ export const login = async (username: string, password: string, turnstileToken: 
 export const verificarTotp = async (codigo: string) => {
   try {
 
-    await api.get('/check-session/')
+    await api.get('api/check-session/')
 
     const response = await api.post('/api/verificar-totp/', {
       codigo
@@ -50,7 +50,7 @@ export const verificarTotp = async (codigo: string) => {
 
 export const logout = async () => {
   try {
-    await api.post('/logout/')
+    await api.post('/api/logout/')
   } catch (error) {
     console.error("Error al cerrar sesión en el servidor:", error)
   } finally {
