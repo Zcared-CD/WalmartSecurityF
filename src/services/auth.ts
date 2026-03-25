@@ -5,7 +5,7 @@ let authCache: boolean | null = null
 
 export const login = async (username: string, password: string, turnstileToken: string) => {
   try {
-    const response = await api.post('/login/', {
+    const response = await api.post('/api/login/', {
       username: username.trim(),
       password: password,
       cf_turnstile_response: turnstileToken,
@@ -30,7 +30,7 @@ export const verificarTotp = async (codigo: string) => {
 
     await api.get('/check-session/')
 
-    const response = await api.post('/verificar-totp/', {
+    const response = await api.post('/api/verificar-totp/', {
       codigo
     })
 
@@ -69,7 +69,7 @@ export const checkSession = async () => {
   if (authCache !== null) return authCache
 
   try {
-    const response = await api.get('/check-session/')
+    const response = await api.get('/api/check-session/')
     authCache = response.data.authenticated
     return authCache
   } catch (error: any) {
@@ -85,7 +85,7 @@ export const checkSession = async () => {
 }
 
 export const verifyCritical = async (codigo: string) => {
-  const response = await api.post('/verify-critical/', {
+  const response = await api.post('/api/verify-critical/', {
     codigo
   })
 
