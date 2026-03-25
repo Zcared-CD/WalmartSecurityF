@@ -17,20 +17,19 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://52.14.7.155:8000',
         changeOrigin: true,
-      },
-      '/refresh': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
+        secure: false,
       },
       '/csrf': {
-        target: 'http://localhost:8000',
+        target: 'http://52.14.7.155:8000',
         changeOrigin: true,
+        secure: false,
       },
-      '/inventory': {
-        target: 'http://localhost:8000',
+      '/refresh': {
+        target: 'http://52.14.7.155:8000',
         changeOrigin: true,
+        secure: false,
       },
     }
   }

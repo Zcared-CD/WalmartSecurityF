@@ -211,7 +211,7 @@ const handleOtpSuccess = async (codigo: string) => {
     alert("Código inválido")
   }
 
-  pendingAction = null
+  let pendingAction: ((token?: string) => Promise<void>) | null = null
 }
 
 const deleteProduct = async () => {

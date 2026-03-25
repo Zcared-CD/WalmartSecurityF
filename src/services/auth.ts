@@ -1,12 +1,11 @@
 import { initSessionTimeout } from "@/services/sessionTimeout"
 import api from './api'
 
-
 let authCache: boolean | null = null
 
 export const login = async (username: string, password: string, turnstileToken: string) => {
   try {
-    const response = await api.post('/api/login/', {
+    const response = await api.post('/login/', {
       username: username.trim(),
       password: password,
       cf_turnstile_response: turnstileToken,
@@ -27,10 +26,11 @@ export const login = async (username: string, password: string, turnstileToken: 
 }
 
 export const verificarTotp = async (codigo: string) => {
-  const username = sessionStorage.getItem('username')
-
   try {
-    const response = await api.post('/api/verificar-totp/', {
+
+    await api.get('/check-session/')
+
+    const response = await api.post('/verificar-totp/', {
       codigo
     })
 
@@ -41,6 +41,7 @@ export const verificarTotp = async (codigo: string) => {
     initSessionTimeout()
 
     return response.data
+
   } catch (error: any) {
     console.error("Error en verificar TOTP:", error.response?.data || error.message)
     throw error
@@ -49,10 +50,13 @@ export const verificarTotp = async (codigo: string) => {
 
 export const logout = async () => {
   try {
-    await api.post('/api/logout/')
+    await api.post('/logout/')
   } catch (error) {
     console.error("Error al cerrar sesión en el servidor:", error)
   } finally {
+
+
+
     authCache = null
 
     sessionStorage.removeItem('username')
@@ -65,7 +69,7 @@ export const checkSession = async () => {
   if (authCache !== null) return authCache
 
   try {
-    const response = await api.get('/api/check-session/')
+    const response = await api.get('/check-session/')
     authCache = response.data.authenticated
     return authCache
   } catch (error: any) {
@@ -81,7 +85,7 @@ export const checkSession = async () => {
 }
 
 export const verifyCritical = async (codigo: string) => {
-  const response = await api.post('/api/verify-critical/', {
+  const response = await api.post('/verify-critical/', {
     codigo
   })
 
