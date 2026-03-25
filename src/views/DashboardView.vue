@@ -199,6 +199,8 @@ const saveProduct = async (productData: Product) => {
   }
 }
 
+let pendingAction: ((token?: string) => Promise<void>) | null = null
+
 const handleOtpSuccess = async (codigo: string) => {
   if (!pendingAction) return
 
@@ -210,8 +212,6 @@ const handleOtpSuccess = async (codigo: string) => {
   } catch (err) {
     alert("Código inválido")
   }
-
-  let pendingAction: ((token?: string) => Promise<void>) | null = null
 }
 
 const deleteProduct = async () => {

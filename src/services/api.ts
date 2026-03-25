@@ -2,7 +2,7 @@ import axios from 'axios'
 import Cookies from 'js-cookie'
 
 const api = axios.create({
-  baseURL: '/',
+  baseURL: 'http://52.14.7.155:8000',
   withCredentials: true,
 })
 
