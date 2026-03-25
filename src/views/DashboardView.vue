@@ -199,19 +199,19 @@ const saveProduct = async (productData: Product) => {
   }
 }
 
-let pendingAction: ((token?: string) => Promise<void>) | null = null
-
 const handleOtpSuccess = async (codigo: string) => {
   if (!pendingAction) return
 
   try {
     const token = await verifyCritical(codigo)
 
-    await pendingAction(token)
+    let pendingAction: ((token?: string) => Promise<void>) | null = null
 
   } catch (err) {
     alert("Código inválido")
   }
+
+  pendingAction = null
 }
 
 const deleteProduct = async () => {
