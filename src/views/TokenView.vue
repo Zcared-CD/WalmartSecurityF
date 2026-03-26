@@ -141,11 +141,10 @@ const handleValidateToken = async () => {
 
     await verificarTotp(tokenInput.value)
 
-
     sessionStorage.removeItem('totp_step')
     sessionStorage.removeItem('totp_qr')
 
-    router.push('/dashboard')
+    window.location.href = '/dashboard' // 
 
   } catch (e: any) {
     const data = e.response?.data
