@@ -50,9 +50,7 @@ api.interceptors.response.use(
       !originalRequest.url.includes('/api/refresh/') &&
       !originalRequest.url.includes('/api/check-session/') &&
       !originalRequest.url.includes('/api/login/') &&
-      !originalRequest.url.includes('/api/logout/') &&
-      !originalRequest.url.includes('/api/verificar-totp/')
-
+      !originalRequest.url.includes('/api/logout/')
     ) {
 
       if (isRefreshing) {
@@ -66,7 +64,7 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        await api.post('/refresh/')
+        await api.post('/api/refresh/')
         processQueue(null)
         return api(originalRequest)
 
