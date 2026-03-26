@@ -75,9 +75,11 @@ export const checkSession = async () => {
 }
 
 export const verifyCritical = async (codigo: string) => {
-  const response = await api.post('/api/verify-critical/', {
-    codigo
-  })
+  const response = await api.post('/api/verify-critical/', { codigo })
+
+  if (!response.data?.critical_token) {
+    throw new Error("Token crítico inválido")
+  }
 
   return response.data.critical_token
 }
