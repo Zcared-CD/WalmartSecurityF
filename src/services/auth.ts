@@ -27,17 +27,12 @@ export const login = async (username: string, password: string, turnstileToken: 
 
 export const verificarTotp = async (codigo: string) => {
   try {
-
-    await api.get('/api/check-session/')
-
     const response = await api.post('/api/verificar-totp/', {
       codigo
     })
 
     authCache = true
-
     sessionStorage.removeItem('totp_qr')
-
     initSessionTimeout()
 
     return response.data
