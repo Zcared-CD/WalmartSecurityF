@@ -47,7 +47,7 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes('/api/refresh/') &&
+      !originalRequest.url.includes('/refresh/') &&
       !originalRequest.url.includes('/api/check-session/') &&
       !originalRequest.url.includes('/api/login/') &&
       !originalRequest.url.includes('/api/logout/') &&
@@ -65,7 +65,7 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        await api.post('/api/refresh/')
+        await api.post('/refresh/')
         processQueue(null)
         return api(originalRequest)
 
