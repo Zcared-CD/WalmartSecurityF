@@ -16,6 +16,7 @@ api.interceptors.request.use((config) => {
 
 let isRefreshing = false
 let failedQueue: any[] = []
+let isLoggingOut = false
 
 
 const processQueue = (error: any) => {
@@ -42,6 +43,11 @@ const forceLogout = () => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+
+    if (isLoggingOut) {
+      return Promise.reject(error)
+    }
+
     const originalRequest = error.config
 
     if (
@@ -70,13 +76,16 @@ api.interceptors.response.use(
         return api(originalRequest)
 
       } catch (err) {
+
+        isLoggingOut = true // 🔥 EVITA LOOP
+
         processQueue(err)
 
         console.error("Refresh expirado, cerrar sesión")
 
         try {
           await axios.post(
-            `${import.meta.env.VITE_API_URL}/session-expired/`,
+            `${import.meta.env.VITE_API_URL}/api/session-expired/`,
             {},
             { withCredentials: true }
           )

@@ -62,7 +62,7 @@ export const checkSession = async () => {
     return false
   }
 
-  if (authCache === true) return true // 🔥 CLAVE
+  if (authCache === true) return true
 
   try {
     const response = await api.get('/api/check-session/')

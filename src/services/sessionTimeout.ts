@@ -20,7 +20,7 @@ export const stopSessionTimeout = () => {
 
 export const initSessionTimeout = () => {
 
-    if (active) return // 🔥 evita múltiples timers
+    if (active) return
     active = true
 
     const events = ["mousemove", "keydown", "click", "scroll"]
@@ -33,7 +33,7 @@ export const initSessionTimeout = () => {
         timeout = setTimeout(() => {
             console.warn("Sesión expirada por inactividad")
             logoutUser()
-        }, 1 * 60 * 1000) // ajusta tiempo aquí
+        }, 1 * 60 * 1000)
     }
 
     events.forEach(event => {
