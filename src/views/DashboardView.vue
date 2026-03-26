@@ -209,6 +209,7 @@ const handleOtpSuccess = async (codigo: string) => {
 
   } catch (err) {
     alert("Código inválido")
+    return
   }
 
   pendingAction = null
