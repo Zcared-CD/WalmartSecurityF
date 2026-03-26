@@ -33,8 +33,13 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, _from) => {
-  const isAuth = await checkSession()
   const totpPending = sessionStorage.getItem('totp_step')
+
+  let isAuth: boolean = false
+
+  if (to.path !== '/token') {
+    isAuth = (await checkSession()) ?? false
+  }
 
   if (to.meta.requiresAuth && !isAuth) {
     return '/login'
