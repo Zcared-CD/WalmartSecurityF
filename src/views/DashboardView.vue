@@ -205,13 +205,14 @@ const handleOtpSuccess = async (codigo: string) => {
   try {
     const token = await verifyCritical(codigo)
 
-    let pendingAction: ((token?: string) => Promise<void>) | null = null
+     await pendingAction(token) 
 
   } catch (err) {
     alert("Código inválido")
   }
 
   pendingAction = null
+  otpDialog.value = false
 }
 
 const deleteProduct = async () => {
