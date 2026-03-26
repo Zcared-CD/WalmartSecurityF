@@ -205,7 +205,7 @@ const handleOtpSuccess = async (codigo: string) => {
   try {
     const token = await verifyCritical(codigo)
 
-     await pendingAction(token) 
+    await pendingAction(token) 
 
   } catch (err) {
     alert("Código inválido")
