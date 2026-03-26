@@ -47,16 +47,13 @@ export const logout = async () => {
   try {
     await api.post('/api/logout/')
   } catch (error) {
-    console.error("Error al cerrar sesión en el servidor:", error)
+    console.error("Error al cerrar sesión:", error)
   } finally {
-
-
-
     authCache = null
 
-    sessionStorage.removeItem('username')
-    sessionStorage.removeItem('totp_step')
-    sessionStorage.removeItem('totp_qr')
+    sessionStorage.clear()
+
+    window.location.href = '/login'
   }
 }
 
