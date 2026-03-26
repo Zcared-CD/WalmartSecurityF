@@ -47,10 +47,12 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes('/refresh/') &&
+      !originalRequest.url.includes('/api/refresh/') &&
       !originalRequest.url.includes('/api/check-session/') &&
       !originalRequest.url.includes('/api/login/') &&
-      !originalRequest.url.includes('/api/logout/')
+      !originalRequest.url.includes('/api/logout/') &&
+      !originalRequest.url.includes('/api/verificar-totp/')
+
     ) {
 
       if (isRefreshing) {
