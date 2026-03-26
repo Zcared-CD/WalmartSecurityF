@@ -66,6 +66,11 @@ export const logout = async () => {
 }
 
 export const checkSession = async () => {
+  // 🔥 NO verificar sesión si estamos en OTP
+  if (window.location.pathname === '/token') {
+    return false
+  }
+
   if (authCache !== null) return authCache
 
   try {
@@ -73,7 +78,6 @@ export const checkSession = async () => {
     authCache = response.data.authenticated
     return authCache
   } catch (error: any) {
-
 
     if (error.response?.status !== 401) {
       console.error("Error checkSession:", error)
