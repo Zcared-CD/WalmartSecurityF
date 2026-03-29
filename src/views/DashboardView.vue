@@ -105,8 +105,7 @@ const sinAcceso = ref(false)
 const products = ref<Product[]>([])
 
 const otpDialog = ref(false)
-let pendingAction: null | (() => Promise<void>) = null
-
+let pendingAction: null | ((token?: string) => Promise<void>) = null
 
 const userRol = ref({ is_admin: false, is_gerente: false, is_empleado: false, roles: [] as string[] })
 
