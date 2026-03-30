@@ -165,6 +165,43 @@ const saveProduct = async (productData: Product) => {
 
   if (isEdit.value) {
 
+    
+    const original = products.value.find(p => p.id === productData.id)
+
+    
+    const esCritico = original && esCambioCritico(original, productData)
+
+    if (esCritico) {
+
+      const id = productData.id as string
+      const data = {
+        product_name: productData.name,
+        unit_price: productData.price,
+        quantity_in_stock: productData.stock,
+      }
+
+      pendingAction = async (token?: string) => {
+        if (!token) return
+
+        const updated = await updateProduct(id, data, token)
+
+        const index = products.value.findIndex((p) => p.id === id)
+        if (index !== -1) {
+          products.value[index] = {
+            id: updated.item_id,
+            name: updated.product_name,
+            price: updated.unit_price,
+            stock: updated.quantity_in_stock,
+          }
+        }
+
+        dialogForm.value = false
+      }
+
+      otpDialog.value = true
+      return 
+    }
+
     try {
       const updated = await updateProduct(productData.id as string, {
         product_name: productData.name,
@@ -186,6 +223,7 @@ const saveProduct = async (productData: Product) => {
 
     } catch (error: any) {
 
+      
       if (error.response?.status === 403) {
 
         const id = productData.id as string
@@ -224,6 +262,7 @@ const saveProduct = async (productData: Product) => {
 
   } else {
 
+    
     try {
       const created = await createProduct({
         product_name: productData.name,
@@ -299,4 +338,20 @@ const deleteProduct = async () => {
     }
   }
 }
+
+const esCambioCritico = (original: Product, nuevo: Product) => {
+
+  if (original.price !== nuevo.price) {
+    return true
+  }
+
+  
+  const diferencia = Math.abs(original.stock - nuevo.stock)
+  if (diferencia >= 20) {
+    return true
+  }
+
+  return false
+}
+
 </script>
