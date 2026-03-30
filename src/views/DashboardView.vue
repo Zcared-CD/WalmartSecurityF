@@ -162,13 +162,16 @@ const openDeleteConfirm = (item: Product) => {
 }
 
 const saveProduct = async (productData: Product) => {
-  try {
-    if (isEdit.value) {
+
+  if (isEdit.value) {
+
+    try {
       const updated = await updateProduct(productData.id as string, {
         product_name: productData.name,
         unit_price: productData.price,
         quantity_in_stock: productData.stock,
       })
+
       const index = products.value.findIndex((p) => p.id === productData.id)
       if (index !== -1) {
         products.value[index] = {
@@ -178,23 +181,71 @@ const saveProduct = async (productData: Product) => {
           stock: updated.quantity_in_stock,
         }
       }
-    } else {
+
+      dialogForm.value = false
+
+    } catch (error: any) {
+
+      if (error.response?.status === 403) {
+
+        const id = productData.id as string
+        const data = {
+          product_name: productData.name,
+          unit_price: productData.price,
+          quantity_in_stock: productData.stock,
+        }
+
+        pendingAction = async (token?: string) => {
+          if (!token) return
+
+          const updated = await updateProduct(id, data, token)
+
+          const index = products.value.findIndex((p) => p.id === id)
+          if (index !== -1) {
+            products.value[index] = {
+              id: updated.item_id,
+              name: updated.product_name,
+              price: updated.unit_price,
+              stock: updated.quantity_in_stock,
+            }
+          }
+
+          dialogForm.value = false
+        }
+
+        otpDialog.value = true
+
+      } else if (error.message === 'SIN_PERMISO') {
+        alert('No tienes permisos para realizar esta acción')
+      } else {
+        console.error(error)
+      }
+    }
+
+  } else {
+
+    try {
       const created = await createProduct({
         product_name: productData.name,
         unit_price: productData.price,
         quantity_in_stock: productData.stock,
       })
+
       products.value.push({
         id: created.item_id,
         name: created.product_name,
         price: created.unit_price,
         stock: created.quantity_in_stock,
       })
-    }
-    dialogForm.value = false
-  } catch (error: any) {
-    if (error.message === 'SIN_PERMISO') {
-      alert('No tienes permisos para realizar esta acción')
+
+      dialogForm.value = false
+
+    } catch (error: any) {
+      if (error.message === 'SIN_PERMISO') {
+        alert('No tienes permisos para realizar esta acción')
+      } else {
+        console.error(error)
+      }
     }
   }
 }
