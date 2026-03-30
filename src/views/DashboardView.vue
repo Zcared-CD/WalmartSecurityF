@@ -224,7 +224,10 @@ const saveProduct = async (productData: Product) => {
     } catch (error: any) {
 
       
-      if (error.response?.status === 403) {
+      if (
+        error.response?.status === 403 &&
+        error.response?.data?.error === "Requiere verificación crítica"
+      ) {
 
         const id = productData.id as string
         const data = {
@@ -310,33 +313,17 @@ const deleteProduct = async () => {
   const id = editedItem.value.id
   if (!id) return
 
-  try {
-    await apiDeleteProduct(id)
+  
+  pendingAction = async (token?: string) => {
+    if (!token) return
+
+    await apiDeleteProduct(id, token)
 
     products.value = products.value.filter((p) => p.id !== id)
     dialogDelete.value = false
-
-  } catch (error: any) {
-
-    if (error.response?.status === 403) {
-
-
-      pendingAction = async (token?: string) => {
-        if (!token) return
-
-        await apiDeleteProduct(id, token)
-
-        products.value = products.value.filter((p) => p.id !== id)
-        dialogDelete.value = false
-      }
-      otpDialog.value = true
-
-    } else if (error.message === 'SIN_PERMISO') {
-      alert('No tienes permisos')
-    } else {
-      console.error(error)
-    }
   }
+
+  otpDialog.value = true
 }
 
 const esCambioCritico = (original: Product, nuevo: Product) => {
