@@ -70,11 +70,12 @@ export async function updateProduct(
   } catch (error) {
     const err = error as AxiosError<any>
 
-    if (err.response?.status === 403 &&
-      err.response?.data?.error === "Requiere verificación crítica") {
+    if (
+      err.response?.status === 403 &&
+      err.response?.data?.error === "Requiere verificación crítica"
+    ) {
       throw err
     }
-
 
     if (err.response?.status === 403) {
       throw new Error('SIN_PERMISO')
