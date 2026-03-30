@@ -232,16 +232,13 @@ const deleteProduct = async () => {
 
 
       pendingAction = async (token?: string) => {
-        await apiDeleteProduct(id, {
-          headers: {
-            "X-Critical-Token": token
-          }
-        })
+        if (!token) return
+
+        await apiDeleteProduct(id, token)
 
         products.value = products.value.filter((p) => p.id !== id)
         dialogDelete.value = false
       }
-
       otpDialog.value = true
 
     } else if (error.message === 'SIN_PERMISO') {
