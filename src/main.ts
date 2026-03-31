@@ -39,6 +39,11 @@ async function bootstrap() {
   }
 
   setInterval(async () => {
+
+    if (window.location.pathname === '/login' || window.location.pathname === '/token') {
+      return
+    }
+
     const stillAuth = await checkSession()
 
     if (!stillAuth) {
