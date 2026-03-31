@@ -57,7 +57,8 @@ api.interceptors.response.use(
       !originalRequest.url.includes('/api/check-session/') &&
       !originalRequest.url.includes('/api/login/') &&
       !originalRequest.url.includes('/api/logout/') &&
-      !originalRequest.url.includes('/api/verificar-totp/')
+      !originalRequest.url.includes('/api/verificar-totp/') &&
+      !originalRequest.url.includes('/api/session-expired/')
     ) {
 
       if (isRefreshing) {
