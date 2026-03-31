@@ -30,9 +30,22 @@ async function bootstrap() {
   app.use(createPinia())
   app.use(router)
   app.use(vuetify)
-
   app.mount('#app')
 
+  const isAuth = await checkSession()
+
+  if (isAuth) {
+    initSessionTimeout()
+  }
+
+  setInterval(async () => {
+    const stillAuth = await checkSession()
+
+    if (!stillAuth) {
+      window.location.replace('/login')
+    }
+  }, 15000)
 }
+
 
 bootstrap()
