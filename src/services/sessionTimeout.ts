@@ -32,7 +32,7 @@ const logoutUser = async () => {
     sessionStorage.clear()
     localStorage.clear()
 
-    window.location.href = '/login'
+    window.location.replace('/login')
 }
 
 export const stopSessionTimeout = () => {
