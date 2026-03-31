@@ -14,6 +14,10 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+const emitLogout = () => {
+  window.dispatchEvent(new Event("force-logout"))
+}
+
 let isRefreshing = false
 let failedQueue: any[] = []
 let isLoggingOut = false
@@ -30,41 +34,34 @@ const processQueue = (error: any) => {
   failedQueue = []
 }
 
-const forceLogout = () => {
-  isRefreshing = false
-  failedQueue = []
-
-  localStorage.removeItem('username')
-  localStorage.removeItem('totp_step')
-  localStorage.removeItem('totp_qr')
-  window.location.href = '/'
-}
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
 
-    if (isLoggingOut) {
+    const originalRequest = error.config
+
+    if (isLoggingOut) return Promise.reject(error)
+
+    const ignoreUrls = [
+      '/refresh/',
+      '/api/login/',
+      '/api/logout/',
+      '/api/verificar-totp/',
+      '/api/check-session/',
+      '/csrf/',
+      '/api/session-expired/',
+    ]
+
+    if (ignoreUrls.some(url => originalRequest.url.includes(url))) {
       return Promise.reject(error)
     }
 
-    const originalRequest = error.config
-
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.url.includes('/refresh/') &&
-      !originalRequest.url.includes('/api/check-session/') &&
-      !originalRequest.url.includes('/api/login/') &&
-      !originalRequest.url.includes('/api/logout/') &&
-      !originalRequest.url.includes('/api/verificar-totp/')
-    ) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         }).then(() => api(originalRequest))
-          .catch(err => Promise.reject(err))
       }
 
       originalRequest._retry = true
@@ -77,25 +74,16 @@ api.interceptors.response.use(
 
       } catch (err) {
 
-        isLoggingOut = true // 🔥 EVITA LOOP
-
         processQueue(err)
+        isLoggingOut = true
 
-        console.error("Refresh expirado, cerrar sesión")
+        console.warn("Sesión expirada → logout global")
 
-        try {
-          await axios.post(
-            `${import.meta.env.VITE_API_URL}/api/session-expired/`,
-            {},
-            { withCredentials: true }
-          )
-        } catch (e) {
-          console.warn("No se pudo notificar sesión expirada")
-        }
-
-        window.location.href = "/login"
+        // 🔥 ESTE ES EL CAMBIO IMPORTANTE
+        emitLogout()
 
         return Promise.reject(err)
+
       } finally {
         isRefreshing = false
       }

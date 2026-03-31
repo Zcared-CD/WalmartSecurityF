@@ -30,8 +30,19 @@ async function bootstrap() {
   app.use(createPinia())
   app.use(router)
   app.use(vuetify)
-
   app.mount('#app')
+
+  window.addEventListener("force-logout", () => {
+    sessionStorage.clear()
+    localStorage.clear()
+    window.location.replace('/login')
+  })
+
+  const isAuth = await checkSession()
+
+  if (isAuth) {
+    initSessionTimeout()
+  }
 
 }
 

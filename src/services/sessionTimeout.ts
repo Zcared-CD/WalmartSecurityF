@@ -29,7 +29,7 @@ const logoutUser = async () => {
 
     stopSessionTimeout()
 
-    window.location.href = '/login'
+    window.dispatchEvent(new Event("force-logout"))
 }
 
 export const stopSessionTimeout = () => {
