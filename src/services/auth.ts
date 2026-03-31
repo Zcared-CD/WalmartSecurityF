@@ -1,7 +1,6 @@
 import { initSessionTimeout } from "@/services/sessionTimeout"
 import api from './api'
 
-
 let authCache: boolean | null = null
 
 export const login = async (username: string, password: string, turnstileToken: string) => {
@@ -27,20 +26,17 @@ export const login = async (username: string, password: string, turnstileToken: 
 }
 
 export const verificarTotp = async (codigo: string) => {
-  const username = sessionStorage.getItem('username')
-
   try {
     const response = await api.post('/api/verificar-totp/', {
       codigo
     })
 
     authCache = true
-
     sessionStorage.removeItem('totp_qr')
-
     initSessionTimeout()
 
     return response.data
+
   } catch (error: any) {
     console.error("Error en verificar TOTP:", error.response?.data || error.message)
     throw error
@@ -51,39 +47,39 @@ export const logout = async () => {
   try {
     await api.post('/api/logout/')
   } catch (error) {
-    console.error("Error al cerrar sesión en el servidor:", error)
+    console.error("Error al cerrar sesión:", error)
   } finally {
     authCache = null
 
-    sessionStorage.removeItem('username')
-    sessionStorage.removeItem('totp_step')
-    sessionStorage.removeItem('totp_qr')
+    sessionStorage.clear()
+
+    window.location.href = '/login'
   }
 }
 
 export const checkSession = async () => {
-  if (authCache !== null) return authCache
+  if (window.location.pathname === '/token') {
+    return false
+  }
+
+  if (authCache === true) return true
 
   try {
     const response = await api.get('/api/check-session/')
     authCache = response.data.authenticated
     return authCache
   } catch (error: any) {
-
-
-    if (error.response?.status !== 401) {
-      console.error("Error checkSession:", error)
-    }
-
     authCache = false
     return false
   }
 }
 
 export const verifyCritical = async (codigo: string) => {
-  const response = await api.post('/api/verify-critical/', {
-    codigo
-  })
+  const response = await api.post('/api/verify-critical/', { codigo })
+
+  if (!response.data?.critical_token) {
+    throw new Error("Token crítico inválido")
+  }
 
   return response.data.critical_token
 }

@@ -1,28 +1,13 @@
 import api from "@/services/api"
 
 let timeout: any
+let active = false
 
-const stopListeners = () => {
-    window.onload = null
-    document.onmousemove = null
-    document.onkeypress = null
-    document.onclick = null
-    document.onscroll = null
-}
+const events = ["mousemove", "keydown", "click", "scroll"]
 
-const logoutUser = async () => {
-    try {
-        await api.post("/api/logout/")
-    } catch (e) { }
+const reset = () => {
+    if (!active) return
 
-    clearTimeout(timeout)
-    stopListeners()
-
-
-    window.location.href = '/login'
-}
-
-const resetTimer = () => {
     clearTimeout(timeout)
 
     timeout = setTimeout(() => {
@@ -31,10 +16,35 @@ const resetTimer = () => {
     }, 1 * 60 * 1000)
 }
 
+const removeListeners = () => {
+    events.forEach(event => {
+        window.removeEventListener(event, reset)
+    })
+}
+
+const logoutUser = async () => {
+    try {
+        await api.post("/api/logout/")
+    } catch (e) { }
+
+    stopSessionTimeout()
+
+    window.location.href = '/login'
+}
+
+export const stopSessionTimeout = () => {
+    active = false
+    clearTimeout(timeout)
+    removeListeners()
+}
+
 export const initSessionTimeout = () => {
-    window.onload = resetTimer
-    document.onmousemove = resetTimer
-    document.onkeypress = resetTimer
-    document.onclick = resetTimer
-    document.onscroll = resetTimer
+    if (active) return
+    active = true
+
+    events.forEach(event => {
+        window.addEventListener(event, reset)
+    })
+
+    reset()
 }

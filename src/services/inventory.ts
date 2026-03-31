@@ -55,27 +55,47 @@ export async function createProduct(product: Omit<Product, 'item_id'>) {
   }
 }
 
-export async function updateProduct(id: string, product: Partial<Product>) {
+export async function updateProduct(
+  id: string,
+  product: Partial<Product>,
+  criticalToken?: string
+) {
   try {
-    const response = await api.patch(`/inventory/${id}/`, product)
+    const response = await api.patch(`/inventory/${id}/`, product, {
+      headers: criticalToken
+        ? { 'X-Critical-Token': criticalToken }
+        : {}
+    })
     return response.data
   } catch (error) {
-    const err = error as AxiosError
+    const err = error as AxiosError<any>
+
+    if (
+      err.response?.status === 403 &&
+      err.response?.data?.error === "Requiere verificación crítica"
+    ) {
+      throw err
+    }
+
     if (err.response?.status === 403) {
       throw new Error('SIN_PERMISO')
     }
+
     console.error('Error UPDATE product:', err.response?.data || err.message)
     throw err
   }
 }
 
-export async function deleteProduct(id: string, config = {}) {
+export async function deleteProduct(id: string, criticalToken: string) {
   try {
-    const response = await api.delete(`/inventory/${id}/`, config)
+    const response = await api.delete(`/inventory/${id}/`, {
+      headers: {
+        'X-Critical-Token': criticalToken
+      }
+    })
     return response.data
   } catch (error) {
     const err = error as AxiosError
-
 
     if (err.response?.status === 403) {
       throw err
