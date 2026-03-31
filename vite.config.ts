@@ -1,37 +1,28 @@
 import { fileURLToPath, URL } from 'node:url'
-
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify from 'vite-plugin-vuetify'
 
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd())
+  const target = env.VITE_API_URL || 'http://127.0.0.1:8000'
 
-export default defineConfig({
-  plugins: [vue(), vuetify({ autoImport: true }), vueDevTools()],
+  return {
+    plugins: [vue(), vuetify({ autoImport: true }), vueDevTools()],
 
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+      },
     },
-  },
 
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://52.14.7.155:8000',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/csrf': {
-        target: 'http://52.14.7.155:8000',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/refresh': {
-        target: 'http://52.14.7.155:8000',
-        changeOrigin: true,
-        secure: false,
-      },
+    server: {
+      proxy: {
+        '/api':     { target, changeOrigin: true, secure: false },
+        '/csrf':    { target, changeOrigin: true, secure: false },
+        '/refresh': { target, changeOrigin: true, secure: false },
+      }
     }
   }
 })
