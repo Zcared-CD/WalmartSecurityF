@@ -29,10 +29,7 @@ const logoutUser = async () => {
 
     stopSessionTimeout()
 
-    sessionStorage.clear()
-    localStorage.clear()
-
-    window.location.replace('/login')
+    window.dispatchEvent(new Event("force-logout"))
 }
 
 export const stopSessionTimeout = () => {

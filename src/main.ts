@@ -32,25 +32,18 @@ async function bootstrap() {
   app.use(vuetify)
   app.mount('#app')
 
+  window.addEventListener("force-logout", () => {
+    sessionStorage.clear()
+    localStorage.clear()
+    window.location.replace('/login')
+  })
+
   const isAuth = await checkSession()
 
   if (isAuth) {
     initSessionTimeout()
   }
 
-  setInterval(async () => {
-
-    if (window.location.pathname === '/login' || window.location.pathname === '/token') {
-      return
-    }
-
-    const stillAuth = await checkSession()
-
-    if (!stillAuth) {
-      window.location.replace('/login')
-    }
-  }, 15000)
 }
-
 
 bootstrap()
