@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import TokenView from '../views/TokenView.vue'
 import DashboardView from '../views/DashboardView.vue'
+import SuppliersView from '../views/SuppliersView.vue'
 import { checkSession } from '@/services/auth'
 
 const router = createRouter({
@@ -27,6 +28,12 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/suppliers',
+      name: 'suppliers',
+      component: SuppliersView,
       meta: { requiresAuth: true },
     },
   ],

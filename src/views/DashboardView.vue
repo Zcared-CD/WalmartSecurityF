@@ -21,17 +21,26 @@
               Panel de administración de microservicios
             </p>
           </v-col>
-          <v-col cols="auto">
-            <v-btn
-              v-if="puedeEditar"
-              color="blue-darken-2"
-              prepend-icon="mdi-plus"
-              size="large"
-              @click="openCreateDialog"
-            >
-              Nuevo Producto
-            </v-btn>
-          </v-col>
+          <v-col cols="auto" class="d-flex gap-2">
+  <v-btn
+    color="teal-darken-2"
+    prepend-icon="mdi-truck"
+    size="large"
+    class="mr-2"
+    @click="router.push('/suppliers')"
+  >
+    Proveedores
+  </v-btn>
+  <v-btn
+    v-if="puedeEditar"
+    color="blue-darken-2"
+    prepend-icon="mdi-plus"
+    size="large"
+    @click="openCreateDialog"
+  >
+    Nuevo Producto
+  </v-btn>
+</v-col>
         </v-row>
 
         <v-card flat class="mb-4 pa-4 rounded-lg">
