@@ -69,6 +69,18 @@
       @success="handleOtpSuccess"
     />
 
+    <v-dialog v-model="dialogInactividad" persistent max-width="450">
+      <v-card>
+        <v-card-title class="bg-warning text-white d-flex align-center">
+          <v-icon start class="mr-2">mdi-alert</v-icon>
+          Aviso de Inactividad
+        </v-card-title>
+        <v-card-text class="pt-4 pb-5 text-body-1">
+          Tu sesión está a punto de expirar por inactividad.
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <FooterBar />
   </v-app>
 </template>
@@ -81,6 +93,9 @@ import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
 import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
 import { verifyCritical } from "@/services/auth"
+
+import { useRouter } from 'vue-router'
+import { reset as resetSession, logoutUser } from '@/services/sessionTimeout'
 import {
   deleteProduct as apiDeleteProduct,
   createProduct,
@@ -88,7 +103,7 @@ import {
   getProducts,
   updateProduct,
 } from '@/services/inventory'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 interface Product {
   id: string | null
@@ -116,7 +131,27 @@ const puedeEliminar = computed(() => userRol.value.is_admin)
 const defaultItem: Product = { id: null, name: '', price: 0, stock: 0 }
 const editedItem = ref<Product>({ ...defaultItem })
 
+const router = useRouter()
+const dialogInactividad = ref(false)
+
+const mostrarAdvertencia = () => {
+  dialogInactividad.value = true
+}
+
+const forzarCierreUI = () => {
+  dialogInactividad.value = false
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+
+const ocultarAdvertencia = () => {
+  dialogInactividad.value = false
+}
+
 onMounted(async () => {
+  window.addEventListener("show-logout-warning", mostrarAdvertencia)
+  window.addEventListener("hide-logout-warning", ocultarAdvertencia)
+  window.addEventListener("force-logout", forzarCierreUI)
   try {
 
     const rol = await getMiRol()
@@ -339,5 +374,11 @@ const esCambioCritico = (original: Product, nuevo: Product) => {
 
   return false
 }
+
+onUnmounted(() => {
+  window.removeEventListener("show-logout-warning", mostrarAdvertencia)
+  window.removeEventListener("hide-logout-warning", ocultarAdvertencia)
+  window.removeEventListener("force-logout", forzarCierreUI)
+})
 
 </script>

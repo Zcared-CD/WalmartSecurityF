@@ -1,19 +1,27 @@
 import api from "@/services/api"
 
-let timeout: any
+let warningTimeout: any
+let logoutTimeout: any
 let active = false
 
 const events = ["mousemove", "keydown", "click", "scroll"]
 
-const reset = () => {
+export const reset = () => {
     if (!active) return
 
-    clearTimeout(timeout)
+    clearTimeout(warningTimeout)
+    clearTimeout(logoutTimeout)
 
-    timeout = setTimeout(() => {
+    window.dispatchEvent(new Event("hide-logout-warning"))
+
+    warningTimeout = setTimeout(() => {
+        window.dispatchEvent(new Event("show-logout-warning"))
+    }, 45 * 1000)
+
+    logoutTimeout = setTimeout(() => {
         console.warn("Sesión expirada por inactividad")
         logoutUser()
-    }, 1 * 60 * 1000)
+    }, 60 * 1000)
 }
 
 const removeListeners = () => {
@@ -22,7 +30,7 @@ const removeListeners = () => {
     })
 }
 
-const logoutUser = async () => {
+export const logoutUser = async () => {
     try {
         await api.post("/api/logout/")
     } catch (e) { }
@@ -34,7 +42,8 @@ const logoutUser = async () => {
 
 export const stopSessionTimeout = () => {
     active = false
-    clearTimeout(timeout)
+    clearTimeout(warningTimeout)
+    clearTimeout(logoutTimeout)
     removeListeners()
 }
 
