@@ -3,14 +3,7 @@
     <HeaderBar show-logout />
     <v-main class="bg-grey-lighten-4">
       <v-container>
-
-
-        <v-alert
-          v-if="sinAcceso"
-          type="error"
-          variant="tonal"
-          class="mb-4"
-        >
+        <v-alert v-if="sinAcceso" type="error" variant="tonal" class="mb-4">
           No tienes permisos para acceder al inventario.
         </v-alert>
 
@@ -22,25 +15,36 @@
             </p>
           </v-col>
           <v-col cols="auto" class="d-flex gap-2">
-  <v-btn
-    color="teal-darken-2"
-    prepend-icon="mdi-truck"
-    size="large"
-    class="mr-2"
-    @click="router.push('/suppliers')"
-  >
-    Proveedores
-  </v-btn>
-  <v-btn
-    v-if="puedeEditar"
-    color="blue-darken-2"
-    prepend-icon="mdi-plus"
-    size="large"
-    @click="openCreateDialog"
-  >
-    Nuevo Producto
-  </v-btn>
-</v-col>
+            <v-btn
+              color="teal-darken-2"
+              prepend-icon="mdi-truck"
+              size="large"
+              class="mr-2"
+              @click="router.push('/suppliers')"
+            >
+              Proveedores
+            </v-btn>
+
+            <v-btn
+              color="orange-darken-2"
+              prepend-icon="mdi-star"
+              size="large"
+              class="mr-2"
+              @click="router.push('/reviews')"
+            >
+              Reseñas
+            </v-btn>
+
+            <v-btn
+              v-if="puedeEditar"
+              color="blue-darken-2"
+              prepend-icon="mdi-plus"
+              size="large"
+              @click="openCreateDialog"
+            >
+              Nuevo Producto
+            </v-btn>
+          </v-col>
         </v-row>
 
         <v-card flat class="mb-4 pa-4 rounded-lg">
@@ -73,10 +77,7 @@
       @confirm="deleteProduct"
     />
 
-    <CriticalOtpDialog
-      v-model="otpDialog"
-      @success="handleOtpSuccess"
-    />
+    <CriticalOtpDialog v-model="otpDialog" @success="handleOtpSuccess" />
 
     <v-dialog v-model="dialogInactividad" persistent max-width="450">
       <v-card>
@@ -101,7 +102,7 @@ import ProductTable from '@/components/dashboard/ProductTable.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
 import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
-import { verifyCritical } from "@/services/auth"
+import { verifyCritical } from '@/services/auth'
 
 import { useRouter } from 'vue-router'
 import { reset as resetSession, logoutUser } from '@/services/sessionTimeout'
@@ -131,8 +132,12 @@ const products = ref<Product[]>([])
 const otpDialog = ref(false)
 let pendingAction: null | ((token?: string) => Promise<void>) = null
 
-const userRol = ref({ is_admin: false, is_gerente: false, is_empleado: false, roles: [] as string[] })
-
+const userRol = ref({
+  is_admin: false,
+  is_gerente: false,
+  is_empleado: false,
+  roles: [] as string[],
+})
 
 const puedeEditar = computed(() => userRol.value.is_admin || userRol.value.is_gerente)
 const puedeEliminar = computed(() => userRol.value.is_admin)
@@ -158,14 +163,12 @@ const ocultarAdvertencia = () => {
 }
 
 onMounted(async () => {
-  window.addEventListener("show-logout-warning", mostrarAdvertencia)
-  window.addEventListener("hide-logout-warning", ocultarAdvertencia)
-  window.addEventListener("force-logout", forzarCierreUI)
+  window.addEventListener('show-logout-warning', mostrarAdvertencia)
+  window.addEventListener('hide-logout-warning', ocultarAdvertencia)
+  window.addEventListener('force-logout', forzarCierreUI)
   try {
-
     const rol = await getMiRol()
     userRol.value = rol
-
 
     if (rol.roles.length === 0) {
       sinAcceso.value = true
@@ -179,7 +182,6 @@ onMounted(async () => {
       price: p.unit_price,
       stock: p.quantity_in_stock,
     }))
-
   } catch (error: any) {
     if (error.message === 'SIN_PERMISO') {
       sinAcceso.value = true
@@ -205,17 +207,12 @@ const openDeleteConfirm = (item: Product) => {
 }
 
 const saveProduct = async (productData: Product) => {
-
   if (isEdit.value) {
-
-
-    const original = products.value.find(p => p.id === productData.id)
-
+    const original = products.value.find((p) => p.id === productData.id)
 
     const esCritico = original && esCambioCritico(original, productData)
 
     if (esCritico) {
-
       const id = productData.id as string
       const data = {
         product_name: productData.name,
@@ -263,15 +260,11 @@ const saveProduct = async (productData: Product) => {
       }
 
       dialogForm.value = false
-
     } catch (error: any) {
-
-
       if (
         error.response?.status === 403 &&
-        error.response?.data?.error === "Requiere verificación crítica"
+        error.response?.data?.error === 'Requiere verificación crítica'
       ) {
-
         const id = productData.id as string
         const data = {
           product_name: productData.name,
@@ -298,17 +291,13 @@ const saveProduct = async (productData: Product) => {
         }
 
         otpDialog.value = true
-
       } else if (error.message === 'SIN_PERMISO') {
         alert('No tienes permisos para realizar esta acción')
       } else {
         console.error(error)
       }
     }
-
   } else {
-
-
     try {
       const created = await createProduct({
         product_name: productData.name,
@@ -324,7 +313,6 @@ const saveProduct = async (productData: Product) => {
       })
 
       dialogForm.value = false
-
     } catch (error: any) {
       if (error.message === 'SIN_PERMISO') {
         alert('No tienes permisos para realizar esta acción')
@@ -342,9 +330,8 @@ const handleOtpSuccess = async (codigo: string) => {
     const token = await verifyCritical(codigo)
 
     await pendingAction(token)
-
   } catch (err) {
-    alert("Código inválido")
+    alert('Código inválido')
     return
   }
 
@@ -355,7 +342,6 @@ const handleOtpSuccess = async (codigo: string) => {
 const deleteProduct = async () => {
   const id = editedItem.value.id
   if (!id) return
-
 
   pendingAction = async (token?: string) => {
     if (!token) return
@@ -370,11 +356,9 @@ const deleteProduct = async () => {
 }
 
 const esCambioCritico = (original: Product, nuevo: Product) => {
-
   if (original.price !== nuevo.price) {
     return true
   }
-
 
   const diferencia = Math.abs(original.stock - nuevo.stock)
   if (diferencia >= 20) {
@@ -385,9 +369,8 @@ const esCambioCritico = (original: Product, nuevo: Product) => {
 }
 
 onUnmounted(() => {
-  window.removeEventListener("show-logout-warning", mostrarAdvertencia)
-  window.removeEventListener("hide-logout-warning", ocultarAdvertencia)
-  window.removeEventListener("force-logout", forzarCierreUI)
+  window.removeEventListener('show-logout-warning', mostrarAdvertencia)
+  window.removeEventListener('hide-logout-warning', ocultarAdvertencia)
+  window.removeEventListener('force-logout', forzarCierreUI)
 })
-
 </script>

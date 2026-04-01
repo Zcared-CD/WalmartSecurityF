@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue'
 import TokenView from '../views/TokenView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import SuppliersView from '../views/SuppliersView.vue'
+import ReviewsView from '../views/ReviewsView.vue'
 import { checkSession } from '@/services/auth'
 
 const router = createRouter({
@@ -36,6 +37,12 @@ const router = createRouter({
       component: SuppliersView,
       meta: { requiresAuth: true },
     },
+    {
+      path: '/reviews',
+      name: 'reviews',
+      component: ReviewsView,
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
@@ -44,10 +51,7 @@ router.beforeEach(async (to, _from) => {
 
   let isAuth: boolean = false
 
-  if (
-    to.path !== '/token' &&
-    to.path !== '/login'
-  ) {
+  if (to.path !== '/token' && to.path !== '/login') {
     try {
       isAuth = (await checkSession()) ?? false
     } catch {
