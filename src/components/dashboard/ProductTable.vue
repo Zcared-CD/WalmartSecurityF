@@ -47,6 +47,7 @@ defineEmits(['edit', 'delete'])
 const headers = [
   { title: 'ID', key: 'id', align: 'start' as const },
   { title: 'Producto', key: 'name', align: 'start' as const },
+  { title: 'Proveedor', key: 'supplier_name', align: 'start' as const },
   { title: 'Precio ($)', key: 'price', align: 'end' as const },
   { title: 'Stock', key: 'stock', align: 'center' as const },
   { title: 'Acciones', key: 'actions', sortable: false, align: 'end' as const },

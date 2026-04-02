@@ -69,7 +69,13 @@
       </v-container>
     </v-main>
 
-    <ProductDialog v-model="dialogForm" :item="editedItem" :is-edit="isEdit" @save="saveProduct" />
+      <ProductDialog
+    v-model="dialogForm"
+    :item="editedItem"
+    :is-edit="isEdit"
+    :suppliers="suppliers"
+    @save="saveProduct"
+  />
 
     <DeleteConfirm
       v-model="dialogDelete"
@@ -104,8 +110,6 @@ import HeaderBar from '@/components/layout/HeaderBar.vue'
 import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
 import { verifyCritical } from '@/services/auth'
 
-import { useRouter } from 'vue-router'
-import { reset as resetSession, logoutUser } from '@/services/sessionTimeout'
 import {
   deleteProduct as apiDeleteProduct,
   createProduct,
@@ -114,12 +118,20 @@ import {
   updateProduct,
 } from '@/services/inventory'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+import { getSuppliers, type Supplier } from '@/services/suppliers'
+const suppliers = ref<Supplier[]>([])
+
 
 interface Product {
   id: string | null
   name: string
   price: number
   stock: number
+  supplier: string
+  supplier_name: string
+
 }
 
 const search = ref('')
@@ -142,7 +154,8 @@ const userRol = ref({
 const puedeEditar = computed(() => userRol.value.is_admin || userRol.value.is_gerente)
 const puedeEliminar = computed(() => userRol.value.is_admin)
 
-const defaultItem: Product = { id: null, name: '', price: 0, stock: 0 }
+
+const defaultItem: Product = { id: null, name: '', price: 0, stock: 0, supplier: '', supplier_name: '' }
 const editedItem = ref<Product>({ ...defaultItem })
 
 const router = useRouter()
@@ -175,12 +188,21 @@ onMounted(async () => {
       return
     }
 
-    const data = await getProducts()
+    const [data, suppliersData] = await Promise.all([
+      getProducts(),
+      getSuppliers()
+    ])
+
+    suppliers.value = suppliersData
+
+
     products.value = data.map((p: any) => ({
       id: p.item_id,
       name: p.product_name,
       price: p.unit_price,
       stock: p.quantity_in_stock,
+      supplier: p.supplier,
+      supplier_name: p.supplier_name,
     }))
   } catch (error: any) {
     if (error.message === 'SIN_PERMISO') {
@@ -218,6 +240,7 @@ const saveProduct = async (productData: Product) => {
         product_name: productData.name,
         unit_price: productData.price,
         quantity_in_stock: productData.stock,
+        supplier: productData.supplier,
       }
 
       pendingAction = async (token?: string) => {
@@ -232,6 +255,8 @@ const saveProduct = async (productData: Product) => {
             name: updated.product_name,
             price: updated.unit_price,
             stock: updated.quantity_in_stock,
+            supplier: updated.supplier,
+            supplier_name: updated.supplier_name,
           }
         }
 
@@ -247,6 +272,7 @@ const saveProduct = async (productData: Product) => {
         product_name: productData.name,
         unit_price: productData.price,
         quantity_in_stock: productData.stock,
+        supplier: productData.supplier,
       })
 
       const index = products.value.findIndex((p) => p.id === productData.id)
@@ -256,6 +282,8 @@ const saveProduct = async (productData: Product) => {
           name: updated.product_name,
           price: updated.unit_price,
           stock: updated.quantity_in_stock,
+          supplier: updated.supplier,
+          supplier_name: updated.supplier_name,
         }
       }
 
@@ -270,6 +298,7 @@ const saveProduct = async (productData: Product) => {
           product_name: productData.name,
           unit_price: productData.price,
           quantity_in_stock: productData.stock,
+          supplier: productData.supplier,
         }
 
         pendingAction = async (token?: string) => {
@@ -284,6 +313,8 @@ const saveProduct = async (productData: Product) => {
               name: updated.product_name,
               price: updated.unit_price,
               stock: updated.quantity_in_stock,
+              supplier: updated.supplier,
+              supplier_name: updated.supplier_name,
             }
           }
 
@@ -303,6 +334,7 @@ const saveProduct = async (productData: Product) => {
         product_name: productData.name,
         unit_price: productData.price,
         quantity_in_stock: productData.stock,
+        supplier: productData.supplier,
       })
 
       products.value.push({
@@ -310,6 +342,8 @@ const saveProduct = async (productData: Product) => {
         name: created.product_name,
         price: created.unit_price,
         stock: created.quantity_in_stock,
+        supplier: created.supplier,
+        supplier_name: created.supplier_name,
       })
 
       dialogForm.value = false
