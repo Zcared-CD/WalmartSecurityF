@@ -34,9 +34,13 @@ export async function createSupplier(name: string) {
   }
 }
 
-export async function updateSupplier(id: string, name: string) {
+export async function updateSupplier(id: string, name: string, criticalToken?: string) {
   try {
-    const response = await api.patch(`/suppliers/${id}/`, { name })
+    const response = await api.patch(
+      `/suppliers/${id}/`,
+      { name },
+      criticalToken ? { headers: { 'X-Critical-Token': criticalToken } } : {}
+    )
     return response.data
   } catch (error) {
     const err = error as AxiosError
@@ -48,15 +52,16 @@ export async function updateSupplier(id: string, name: string) {
   }
 }
 
-export async function deleteSupplier(id: string) {
+export async function deleteSupplier(id: string, criticalToken?: string) {
   try {
-    const response = await api.delete(`/suppliers/${id}/`)
+    const response = await api.delete(
+      `/suppliers/${id}/`,
+      criticalToken ? { headers: { 'X-Critical-Token': criticalToken } } : {}
+    )
     return response.data
   } catch (error) {
     const err = error as AxiosError
-    if (err.response?.status === 403) {
-      throw new Error('SIN_PERMISO')
-    }
+    if (err.response?.status === 403) throw new Error('SIN_PERMISO')
     console.error('Error DELETE supplier:', err.response?.data || err.message)
     throw err
   }

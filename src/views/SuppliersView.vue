@@ -15,12 +15,11 @@
               Regresar
             </v-btn>
             <h1 class="text-h4 font-weight-bold text-blue-darken-4">Proveedores</h1>
-            <p class="text-subtitle-1 text-grey-darken-1">
-              Gestión de proveedores
-            </p>
+            <p class="text-subtitle-1 text-grey-darken-1">Gestión de proveedores</p>
           </v-col>
           <v-col cols="auto">
             <v-btn
+              v-if="puedeEditar"
               color="blue-darken-2"
               prepend-icon="mdi-plus"
               size="large"
@@ -50,7 +49,9 @@
             class="elevation-0"
           >
             <template #item.actions="{ item }">
+
               <v-icon
+                v-if="puedeEditar"
                 color="blue-darken-2"
                 class="mr-2"
                 @click="openEditDialog(item)"
@@ -58,6 +59,7 @@
                 mdi-pencil
               </v-icon>
               <v-icon
+                v-if="puedeEliminar"
                 color="red-darken-2"
                 @click="openDeleteConfirm(item)"
               >
@@ -70,7 +72,7 @@
       </v-container>
     </v-main>
 
-    <!-- Dialog crear/editar -->
+
     <v-dialog v-model="dialog" max-width="400px">
       <v-card>
         <v-card-title class="text-h6 pa-4">
@@ -94,15 +96,23 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog confirmar eliminar -->
+
     <v-dialog v-model="dialogDelete" max-width="400px">
       <v-card>
-        <v-card-title class="text-h6 pa-4">
-          Eliminar Proveedor
-        </v-card-title>
+        <v-card-title class="text-h6 pa-4">Eliminar Proveedor</v-card-title>
         <v-card-text>
           ¿Estás seguro que deseas eliminar a <strong>{{ form.name }}</strong>?
         </v-card-text>
+
+        <v-alert
+          v-if="deleteError"
+          type="error"
+          variant="tonal"
+          class="mx-4 mb-2"
+          density="compact"
+        >
+          {{ deleteError }}
+        </v-alert>
         <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn text @click="dialogDelete = false">Cancelar</v-btn>
@@ -113,6 +123,8 @@
       </v-card>
     </v-dialog>
 
+    <CriticalOtpDialog v-model="otpDialog" @success="handleOtpSuccess" />
+
     <FooterBar />
   </v-app>
 </template>
@@ -120,6 +132,9 @@
 <script setup lang="ts">
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
+import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
+import { verifyCritical } from '@/services/auth'
+import { getMiRol } from '@/services/inventory'
 import {
   createSupplier,
   deleteSupplier,
@@ -127,7 +142,7 @@ import {
   updateSupplier,
   type Supplier,
 } from '@/services/suppliers'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -136,7 +151,21 @@ const dialog = ref(false)
 const dialogDelete = ref(false)
 const isEdit = ref(false)
 const formError = ref('')
+const deleteError = ref('')
 const suppliers = ref<Supplier[]>([])
+
+
+const userRol = ref({
+  is_admin: false,
+  is_gerente: false,
+  is_empleado: false,
+})
+const puedeEditar = computed(() => userRol.value.is_admin || userRol.value.is_gerente)
+const puedeEliminar = computed(() => userRol.value.is_admin)
+
+
+const otpDialog = ref(false)
+let pendingAction: null | ((token?: string) => Promise<void>) = null
 
 const defaultForm = { supplier_id: '', name: '' }
 const form = ref<Supplier>({ ...defaultForm })
@@ -148,6 +177,13 @@ const headers = [
 ]
 
 onMounted(async () => {
+
+  try {
+    const rol = await getMiRol()
+    userRol.value = rol
+  } catch (e) {
+    console.error(e)
+  }
   await loadSuppliers()
 })
 
@@ -175,33 +211,79 @@ function openEditDialog(item: Supplier) {
 
 function openDeleteConfirm(item: Supplier) {
   form.value = { ...item }
+  deleteError.value = ''
   dialogDelete.value = true
 }
 
+
 async function confirmDelete() {
-  try {
-    await deleteSupplier(form.value.supplier_id)
-    suppliers.value = suppliers.value.filter(s => s.supplier_id !== form.value.supplier_id)
-    dialogDelete.value = false
-  } catch (error) {
-    console.error(error)
+  deleteError.value = ''
+  pendingAction = async (token?: string) => {
+    if (!token) return
+    try {
+      await deleteSupplier(form.value.supplier_id, token)
+      suppliers.value = suppliers.value.filter(s => s.supplier_id !== form.value.supplier_id)
+      dialogDelete.value = false
+    } catch (error: any) {
+
+      if (error.response?.status === 400) {
+        deleteError.value = error.response.data?.error ?? 'No se puede eliminar este proveedor.'
+      } else {
+        deleteError.value = 'Error al eliminar el proveedor.'
+      }
+    }
   }
+  otpDialog.value = true
 }
+
 
 async function saveSupplier() {
   formError.value = ''
-  try {
-    if (isEdit.value) {
-      const updated = await updateSupplier(form.value.supplier_id, form.value.name)
-      const index = suppliers.value.findIndex(s => s.supplier_id === updated.supplier_id)
-      if (index !== -1) suppliers.value[index] = updated
-    } else {
-      const created = await createSupplier(form.value.name)
-      suppliers.value.push(created)
-    }
-    dialog.value = false
-  } catch (error: any) {
-    formError.value = error.response?.data?.name?.[0] ?? 'Error al guardar'
+
+  const nombre = form.value.name.trim().slice(0, 16)
+  if (!nombre) {
+    formError.value = 'El nombre no puede estar vacío.'
+    return
   }
+
+  if (isEdit.value) {
+
+    const id = form.value.supplier_id
+    pendingAction = async (token?: string) => {
+      if (!token) return
+      try {
+        const updated = await updateSupplier(id, nombre, token)
+        const index = suppliers.value.findIndex(s => s.supplier_id === updated.supplier_id)
+        if (index !== -1) suppliers.value[index] = updated
+        dialog.value = false
+      } catch (error: any) {
+        formError.value = error.response?.data?.name?.[0] ?? 'Error al guardar.'
+      }
+    }
+    otpDialog.value = true
+  } else {
+
+    try {
+      const created = await createSupplier(nombre)
+      suppliers.value.push(created)
+      dialog.value = false
+    } catch (error: any) {
+      formError.value = error.response?.data?.name?.[0] ?? 'Error al guardar.'
+    }
+  }
+}
+
+
+async function handleOtpSuccess(codigo: string) {
+  if (!pendingAction) return
+  try {
+    const token = await verifyCritical(codigo)
+    await pendingAction(token)
+  } catch {
+    alert('Código inválido')
+    return
+  }
+  pendingAction = null
+  otpDialog.value = false
 }
 </script>
