@@ -3,7 +3,6 @@
     <HeaderBar show-logout />
     <v-main class="bg-grey-lighten-4">
       <v-container>
-
         <v-row class="mb-5 align-center">
           <v-col>
             <v-btn
@@ -42,14 +41,8 @@
         </v-card>
 
         <v-card flat class="rounded-lg">
-          <v-data-table
-            :headers="headers"
-            :items="suppliers"
-            :search="search"
-            class="elevation-0"
-          >
+          <v-data-table :headers="headers" :items="suppliers" :search="search" class="elevation-0">
             <template #item.actions="{ item }">
-
               <v-icon
                 v-if="puedeEditar"
                 color="blue-darken-2"
@@ -58,20 +51,14 @@
               >
                 mdi-pencil
               </v-icon>
-              <v-icon
-                v-if="puedeEliminar"
-                color="red-darken-2"
-                @click="openDeleteConfirm(item)"
-              >
+              <v-icon v-if="puedeEliminar" color="red-darken-2" @click="openDeleteConfirm(item)">
                 mdi-delete
               </v-icon>
             </template>
           </v-data-table>
         </v-card>
-
       </v-container>
     </v-main>
-
 
     <v-dialog v-model="dialog" max-width="400px">
       <v-card>
@@ -83,25 +70,28 @@
             v-model="form.name"
             label="Nombre del proveedor"
             variant="outlined"
-            :error-messages="formError"
+            :error-messages="nameErrors.length ? nameErrors : formError"
+            counter="16"
+            hint="Mínimo 4, máximo 16 caracteres"
+            persistent-hint
           />
         </v-card-text>
         <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn text @click="dialog = false">Cancelar</v-btn>
-          <v-btn color="blue-darken-2" variant="flat" @click="saveSupplier">
+          <v-btn color="blue-darken-2" variant="flat" @click="saveSupplier"  :disabled="nameErrors.length > 0 || !form.name.trim()">
             Guardar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-
     <v-dialog v-model="dialogDelete" max-width="400px">
       <v-card>
         <v-card-title class="text-h6 pa-4">Eliminar Proveedor</v-card-title>
         <v-card-text>
-          ¿Estás seguro que deseas eliminar a <strong>{{ form.name }}</strong>?
+          ¿Estás seguro que deseas eliminar a <strong>{{ form.name }}</strong
+          >?
         </v-card-text>
 
         <v-alert
@@ -116,9 +106,7 @@
         <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn text @click="dialogDelete = false">Cancelar</v-btn>
-          <v-btn color="red-darken-2" variant="flat" @click="confirmDelete">
-            Eliminar
-          </v-btn>
+          <v-btn color="red-darken-2" variant="flat" @click="confirmDelete"> Eliminar </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -154,7 +142,6 @@ const formError = ref('')
 const deleteError = ref('')
 const suppliers = ref<Supplier[]>([])
 
-
 const userRol = ref({
   is_admin: false,
   is_gerente: false,
@@ -162,7 +149,33 @@ const userRol = ref({
 })
 const puedeEditar = computed(() => userRol.value.is_admin || userRol.value.is_gerente)
 const puedeEliminar = computed(() => userRol.value.is_admin)
+const nameErrors = computed(() => {
+  const val = form.value.name
 
+  if (!val) return []
+
+  if (val.length < 4) {
+    return ['El nombre debe tener al menos 4 caracteres.']
+  }
+
+  if (val.length > 16) {
+    return ['El nombre no puede tener más de 16 caracteres.']
+  }
+
+  if (val !== val.trim()) {
+    return ['Formatos incorrectos.']
+  }
+
+  if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(val)) {
+    return ['Solo se permiten letras y numeros']
+  }
+
+  if (/^\d+$/.test(val.trim())) {
+    return ['El nombre no puede ser solo números.']
+  }
+
+  return []
+})
 
 const otpDialog = ref(false)
 let pendingAction: null | ((token?: string) => Promise<void>) = null
@@ -177,7 +190,6 @@ const headers = [
 ]
 
 onMounted(async () => {
-
   try {
     const rol = await getMiRol()
     userRol.value = rol
@@ -215,17 +227,15 @@ function openDeleteConfirm(item: Supplier) {
   dialogDelete.value = true
 }
 
-
 async function confirmDelete() {
   deleteError.value = ''
   pendingAction = async (token?: string) => {
     if (!token) return
     try {
       await deleteSupplier(form.value.supplier_id, token)
-      suppliers.value = suppliers.value.filter(s => s.supplier_id !== form.value.supplier_id)
+      suppliers.value = suppliers.value.filter((s) => s.supplier_id !== form.value.supplier_id)
       dialogDelete.value = false
     } catch (error: any) {
-
       if (error.response?.status === 400) {
         deleteError.value = error.response.data?.error ?? 'No se puede eliminar este proveedor.'
       } else {
@@ -235,7 +245,6 @@ async function confirmDelete() {
   }
   otpDialog.value = true
 }
-
 
 async function saveSupplier() {
   formError.value = ''
@@ -247,13 +256,12 @@ async function saveSupplier() {
   }
 
   if (isEdit.value) {
-
     const id = form.value.supplier_id
     pendingAction = async (token?: string) => {
       if (!token) return
       try {
         const updated = await updateSupplier(id, nombre, token)
-        const index = suppliers.value.findIndex(s => s.supplier_id === updated.supplier_id)
+        const index = suppliers.value.findIndex((s) => s.supplier_id === updated.supplier_id)
         if (index !== -1) suppliers.value[index] = updated
         dialog.value = false
       } catch (error: any) {
@@ -262,7 +270,6 @@ async function saveSupplier() {
     }
     otpDialog.value = true
   } else {
-
     try {
       const created = await createSupplier(nombre)
       suppliers.value.push(created)
@@ -272,7 +279,6 @@ async function saveSupplier() {
     }
   }
 }
-
 
 async function handleOtpSuccess(codigo: string) {
   if (!pendingAction) return
