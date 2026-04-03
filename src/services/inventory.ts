@@ -6,6 +6,8 @@ export interface Product {
   product_name: string
   unit_price: number
   quantity_in_stock: number
+  supplier?: string
+  supplier_name?: string
 }
 
 export interface UserRol {
