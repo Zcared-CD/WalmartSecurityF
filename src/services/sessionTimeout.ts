@@ -128,7 +128,6 @@ export const initSessionTimeout = () => {
         }
     })
 
-    initIdleDetection()
     initTabControl()
 
     reset()

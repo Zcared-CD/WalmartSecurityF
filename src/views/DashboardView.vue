@@ -107,6 +107,7 @@ import ProductDialog from '@/components/dashboard/ProductDialog.vue'
 import ProductTable from '@/components/dashboard/ProductTable.vue'
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
+import { initIdleDetection } from '@/services/sessionTimeout'
 import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
 import { verifyCritical } from '@/services/auth'
 
@@ -174,6 +175,16 @@ const forzarCierreUI = () => {
 const ocultarAdvertencia = () => {
   dialogInactividad.value = false
 }
+
+
+onMounted(() => {
+  const solicitarIdle = async () => {
+    await initIdleDetection()
+    document.removeEventListener("click", solicitarIdle)
+  }
+
+  document.addEventListener("click", solicitarIdle)
+})
 
 onMounted(async () => {
   window.addEventListener('show-logout-warning', mostrarAdvertencia)
