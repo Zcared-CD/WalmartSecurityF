@@ -3,11 +3,20 @@ import api from "@/services/api"
 let warningTimeout: any
 let logoutTimeout: any
 let active = false
+let lastActivity = Date.now()
 
-const events = ["mousemove", "keydown", "click", "scroll"]
+const events = ["click", "keydown"]
 
 export const reset = () => {
     if (!active) return
+
+    if (!document.hasFocus()) return
+
+    const now = Date.now()
+
+    if (now - lastActivity < 1000) return
+
+    lastActivity = now
 
     clearTimeout(warningTimeout)
     clearTimeout(logoutTimeout)
@@ -26,7 +35,7 @@ export const reset = () => {
 
 const removeListeners = () => {
     events.forEach(event => {
-        window.removeEventListener(event, reset)
+        document.removeEventListener(event, reset)
     })
 }
 
@@ -52,7 +61,13 @@ export const initSessionTimeout = () => {
     active = true
 
     events.forEach(event => {
-        window.addEventListener(event, reset)
+        document.addEventListener(event, reset)
+    })
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            reset()
+        }
     })
 
     reset()
