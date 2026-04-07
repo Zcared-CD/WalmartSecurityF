@@ -3,8 +3,11 @@ import api from "@/services/api"
 let warningTimeout: any
 let logoutTimeout: any
 let active = false
+let idleDetector: any = null
 let lastActivity = Date.now()
 
+const TAB_KEY = "active_tab_id"
+const tabId = Date.now().toString()
 const events = ["click", "keydown"]
 
 export const reset = () => {
@@ -56,6 +59,61 @@ export const stopSessionTimeout = () => {
     removeListeners()
 }
 
+export const initIdleDetection = async () => {
+    if (!("IdleDetector" in window)) {
+        console.warn("Idle Detection no soportado")
+        return
+    }
+
+    try {
+        const permission = await (window as any).IdleDetector.requestPermission()
+
+        if (permission !== "granted") {
+            console.warn("Permiso Idle Detection denegado")
+            return
+        }
+
+        idleDetector = new (window as any).IdleDetector()
+
+        await idleDetector.start({
+            threshold: 60000,
+        })
+
+        idleDetector.addEventListener("change", () => {
+            const userState = idleDetector.userState
+
+            if (userState === "idle") {
+                console.warn("IdleDetection: usuario inactivo")
+
+                window.dispatchEvent(new Event("show-logout-warning"))
+
+                setTimeout(() => {
+                    logoutUser()
+                }, 15000)
+            }
+        })
+
+    } catch (error) {
+        console.error("Error Idle Detection:", error)
+    }
+}
+
+export const initTabControl = () => {
+    localStorage.setItem(TAB_KEY, tabId)
+
+    window.addEventListener("storage", (event) => {
+        if (event.key === TAB_KEY) {
+            if (event.newValue !== tabId) {
+                console.warn("Otra pestaña detectada 🚫")
+
+                alert("Solo puedes tener una sesión abierta")
+
+                logoutUser()
+            }
+        }
+    })
+}
+
 export const initSessionTimeout = () => {
     if (active) return
     active = true
@@ -69,6 +127,9 @@ export const initSessionTimeout = () => {
             reset()
         }
     })
+
+    initIdleDetection()
+    initTabControl()
 
     reset()
 }
