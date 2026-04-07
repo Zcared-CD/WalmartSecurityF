@@ -52,14 +52,30 @@ export async function updateReview(id: string, data: { rating?: number; comment?
   }
 }
 
-export async function deleteReview(id: string) {
+export async function deleteReview(id: string, criticalToken: string) {
   try {
-    await api.delete(`/reviews/${id}/`)
+    const response = await api.delete(`/reviews/${id}/`, {
+      headers: {
+        'X-Critical-Token': criticalToken
+      }
+    })
+
+    return response.data
+
   } catch (error) {
-    const err = error as AxiosError
+    const err = error as AxiosError<any>
+
+    if (
+      err.response?.status === 403 &&
+      err.response?.data?.error === "Requiere verificación crítica"
+    ) {
+      throw err
+    }
+
     if (err.response?.status === 403) {
       throw new Error('SIN_PERMISO')
     }
+
     console.error('Error DELETE review:', err.response?.data || err.message)
     throw err
   }

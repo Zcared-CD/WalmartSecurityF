@@ -130,6 +130,8 @@
       </v-card>
     </v-dialog>
 
+    <CriticalOtpDialog v-model="otpDialog" @success="handleOtpSuccess" />
+
     <FooterBar />
   </v-app>
 </template>
@@ -137,6 +139,8 @@
 <script setup lang="ts">
 import FooterBar from '@/components/layout/FooterBar.vue'
 import HeaderBar from '@/components/layout/HeaderBar.vue'
+import CriticalOtpDialog from '@/components/security/CriticalOtpDialog.vue'
+import { verifyCritical } from '@/services/auth'
 import { getProducts, type Product } from '@/services/inventory'
 import {
   createReview,
@@ -155,6 +159,8 @@ const dialogDelete = ref(false)
 const isEdit = ref(false)
 const reviews = ref<Review[]>([])
 const products = ref<Product[]>([])
+const otpDialog = ref(false)
+let pendingAction: null | ((token?: string) => Promise<void>) = null
 
 const formErrors = ref({ item: '', rating: '', comment: '' })
 
@@ -218,13 +224,36 @@ function openDeleteConfirm(item: Review) {
 }
 
 async function confirmDelete() {
-  try {
-    await deleteReview(form.value.review_id)
-    reviews.value = reviews.value.filter((r) => r.review_id !== form.value.review_id)
+  const id = form.value.review_id
+
+  pendingAction = async (token?: string) => {
+    if (!token) return
+
+    await deleteReview(id, token)
+
+    reviews.value = reviews.value.filter(
+      (r) => r.review_id !== id
+    )
+
     dialogDelete.value = false
-  } catch (error) {
-    console.error(error)
   }
+
+  otpDialog.value = true
+}
+
+async function handleOtpSuccess(codigo: string) {
+  if (!pendingAction) return
+
+  try {
+    const token = await verifyCritical(codigo)
+    await pendingAction(token)
+  } catch {
+    alert('Código inválido')
+    return
+  }
+
+  pendingAction = null
+  otpDialog.value = false
 }
 
 async function saveReview() {

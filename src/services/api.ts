@@ -79,7 +79,6 @@ api.interceptors.response.use(
 
         console.warn("Sesión expirada → logout global")
 
-        // 🔥 ESTE ES EL CAMBIO IMPORTANTE
         emitLogout()
 
         return Promise.reject(err)
