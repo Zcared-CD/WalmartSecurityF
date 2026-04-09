@@ -55,10 +55,22 @@
             </template>
 
             <template #item.actions="{ item }">
-              <v-icon color="blue-darken-2" class="mr-2" @click="openEditDialog(item)">
+              <v-icon
+                v-if="puedeEditar"
+                color="blue-darken-2"
+                class="mr-2"
+                @click="openEditDialog(item)"
+              >
                 mdi-pencil
               </v-icon>
-              <v-icon color="red-darken-2" @click="openDeleteConfirm(item)"> mdi-delete </v-icon>
+
+              <v-icon
+                v-if="puedeEliminar"
+                color="red-darken-2"
+                @click="openDeleteConfirm(item)"
+              >
+                mdi-delete
+              </v-icon>
             </template>
           </v-data-table>
         </v-card>
@@ -151,6 +163,8 @@ import {
 } from '@/services/reviews'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { getMiRol } from '@/services/inventory'
+import { computed } from 'vue'
 
 const router = useRouter()
 const search = ref('')
@@ -164,6 +178,7 @@ let pendingAction: null | ((token?: string) => Promise<void>) = null
 
 const formErrors = ref({ item: '', rating: '', comment: '' })
 
+
 const defaultForm = {
   review_id: '',
   item: '',
@@ -174,6 +189,16 @@ const defaultForm = {
 }
 const form = ref<Review>({ ...defaultForm })
 
+const userRol = ref({
+  is_admin: false,
+  is_gerente: false,
+  is_empleado: false,
+  roles: [] as string[],
+})
+
+const puedeEditar = computed(() => userRol.value.is_admin || userRol.value.is_gerente)
+const puedeEliminar = computed(() => userRol.value.is_admin)
+
 const headers = [
   { title: 'Producto', key: 'product_name' },
   { title: 'Calificación', key: 'rating', sortable: true },
@@ -183,8 +208,15 @@ const headers = [
 ]
 
 onMounted(async () => {
-  await loadReviews()
-  await loadProducts()
+  try {
+    const rol = await getMiRol()
+    userRol.value = rol
+
+    await loadReviews()
+    await loadProducts()
+  } catch (error) {
+    console.error(error)
+  }
 })
 
 async function loadReviews() {
