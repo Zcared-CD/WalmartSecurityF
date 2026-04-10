@@ -45,10 +45,21 @@ async function bootstrap() {
   app.use(vuetify)
   app.mount('#app')
 
+  let checkingSession = false
+
   window.addEventListener("focus", async () => {
-    const isAuth = await checkSession()
-    if (!isAuth && window.location.pathname !== "/login") {
-      window.location.replace("/login")
+    if (checkingSession) return
+    checkingSession = true
+
+    try {
+      const isAuth = await checkSession()
+      if (!isAuth && window.location.pathname !== "/login") {
+        window.location.replace("/login")
+      }
+    } finally {
+      setTimeout(() => {
+        checkingSession = false
+      }, 1000)
     }
   })
 
@@ -58,10 +69,6 @@ async function bootstrap() {
     window.location.replace('/login')
   })
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "F12") {
-    }
-  })
 
   const isAuth = await checkSession()
 

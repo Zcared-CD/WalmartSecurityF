@@ -33,6 +33,8 @@ export const verificarTotp = async (codigo: string) => {
 
     authCache = true
     sessionStorage.removeItem('totp_qr')
+    sessionStorage.removeItem('totp_step')
+
     initSessionTimeout()
 
     return response.data
@@ -53,7 +55,7 @@ export const logout = async () => {
 
     sessionStorage.clear()
 
-    window.location.href = '/login'
+    window.location.replace('/login')
   }
 }
 

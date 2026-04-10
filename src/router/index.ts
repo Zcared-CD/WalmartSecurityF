@@ -67,12 +67,24 @@ router.beforeEach(async (to, _from) => {
     return '/login'
   }
 
+  if (to.path === '/token' && !totpPending) {
+    return '/login'
+  }
+
   if (to.path === '/token' && isAuth) {
     return '/dashboard'
   }
 
   if (!to.meta.requiresAuth && isAuth && to.path === '/login') {
     return '/dashboard'
+  }
+
+  if (!isAuth && to.meta.requiresAuth) {
+    return '/login'
+  }
+
+  if (!isAuth && window.history.state?.back) {
+    window.history.replaceState(null, '', '/login')
   }
 
   return true
