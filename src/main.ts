@@ -12,17 +12,30 @@ import App from './App.vue'
 import router from './router'
 import api from "@/services/api"
 
+if (import.meta.env.PROD) {
+  console.log = () => { }
+  console.warn = () => { }
+}
+
 const vuetify = createVuetify({
   theme: {
     defaultTheme: 'light',
   },
 })
 
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    window.location.reload()
+  }
+})
+
 async function bootstrap() {
   try {
     await api.get("/csrf/")
   } catch (error) {
-    console.error("Error obteniendo CSRF", error)
+    if (!import.meta.env.PROD) {
+      console.error("Error obteniendo CSRF", error)
+    }
   }
 
   const app = createApp(App)
@@ -31,6 +44,13 @@ async function bootstrap() {
   app.use(router)
   app.use(vuetify)
   app.mount('#app')
+
+  window.addEventListener("focus", async () => {
+    const isAuth = await checkSession()
+    if (!isAuth && window.location.pathname !== "/login") {
+      window.location.replace("/login")
+    }
+  })
 
   window.addEventListener("force-logout", () => {
     sessionStorage.clear()

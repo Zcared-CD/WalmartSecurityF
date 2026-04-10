@@ -51,12 +51,12 @@ router.beforeEach(async (to, _from) => {
 
   let isAuth: boolean = false
 
-  if (to.path !== '/token' && to.path !== '/login') {
-    try {
+  try {
+    if (to.meta.requiresAuth) {
       isAuth = (await checkSession()) ?? false
-    } catch {
-      isAuth = false
     }
+  } catch {
+    isAuth = false
   }
 
   if (to.meta.requiresAuth && !isAuth) {
