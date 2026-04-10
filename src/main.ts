@@ -60,7 +60,6 @@ async function bootstrap() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "F12") {
-      // opcional
     }
   })
 
