@@ -58,6 +58,12 @@ async function bootstrap() {
     window.location.replace('/login')
   })
 
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "F12") {
+      // opcional
+    }
+  })
+
   const isAuth = await checkSession()
 
   if (isAuth) {

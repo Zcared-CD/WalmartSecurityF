@@ -34,11 +34,75 @@ const processQueue = (error: any) => {
   failedQueue = []
 }
 
+const isFrontendLog = (url: string) =>
+  url.includes('/api/frontend-log/')
+
+
+const sendLogToBackend = async (error: any) => {
+  try {
+    await api.post('/api/frontend-log/', {
+      type: "FRONTEND_ERROR",
+      message: error?.message || "Error desconocido",
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+    })
+  } catch {
+  }
+}
+
+let requestCount = 0
+let lastReset = Date.now()
+
+const detectSpam = () => {
+  requestCount++
+
+  const now = Date.now()
+
+  if (now - lastReset > 5000) {
+    requestCount = 0
+    lastReset = now
+  }
+
+  if (requestCount > 20) {
+    sendLogToBackend({
+      message: "Posible spam detectado"
+    })
+  }
+}
+
+const detectBot = () => {
+  const ua = navigator.userAgent.toLowerCase()
+
+  const bots = ["curl", "wget", "python", "postman", "insomnia", "httpie"]
+
+  if (bots.some(bot => ua.includes(bot))) {
+    sendLogToBackend({
+      message: "Posible bot detectado"
+    })
+  }
+}
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    detectSpam()
+    detectBot()
+    return response
+  },
+
   async (error) => {
 
     const originalRequest = error.config
+
+    if (isFrontendLog(originalRequest?.url || "")) {
+      return Promise.reject(error)
+    }
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest?.url?.includes('/api/check-session/')
+    ) {
+      return Promise.reject(error)
+    }
 
     if (isLoggingOut) return Promise.reject(error)
 
@@ -77,7 +141,9 @@ api.interceptors.response.use(
         processQueue(err)
         isLoggingOut = true
 
-        console.warn("Sesión expirada → logout global")
+        if (!import.meta.env.PROD) {
+          console.warn("Sesión expirada → logout global")
+        }
 
         emitLogout()
 
@@ -86,6 +152,10 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false
       }
+    }
+
+    if (import.meta.env.PROD) {
+      sendLogToBackend(error)
     }
 
     return Promise.reject(error)
