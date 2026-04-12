@@ -67,7 +67,7 @@
         size="large"
         class="login-btn"
         :loading="cargando"
-        :disabled="cargando || estaBloqueado"
+        :disabled="cargando || estaBloqueado || !turnstileToken"
         @click="goToToken"
       >
         INICIAR SESIÓN
@@ -195,8 +195,16 @@ const goToToken = async () => {
     console.error("Error de autenticación:", e)
 
   } finally {
-    cargando.value = false
-  }
+      cargando.value = false
+
+
+      if (window.turnstile) {
+        window.turnstile.reset()
+      }
+
+  
+      turnstileToken.value = ''
+    }
 }
 </script>
 
