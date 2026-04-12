@@ -93,6 +93,31 @@ api.interceptors.response.use(
 
     const originalRequest = error.config
 
+    if (error.response?.status === 403) {
+      const msg = error.response?.data?.error || ""
+      const blockedUntil = error.response?.data?.blocked_until
+
+      if (
+        msg.includes("IP bloqueada") ||
+        msg.includes("seguridad") ||
+        msg.includes("Sesión inválida")
+      ) {
+        if (!isLoggingOut) {
+          isLoggingOut = true
+
+          if (blockedUntil) {
+            sessionStorage.setItem("blocked_until", blockedUntil)
+          }
+
+          sessionStorage.setItem("blocked", "true")
+
+          window.location.replace("/blocked")
+        }
+
+        return Promise.reject(error)
+      }
+    }
+
     if (isFrontendLog(originalRequest?.url || "")) {
       return Promise.reject(error)
     }

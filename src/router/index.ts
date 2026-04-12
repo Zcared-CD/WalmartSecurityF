@@ -6,6 +6,9 @@ import SuppliersView from '../views/SuppliersView.vue'
 import ReviewsView from '../views/ReviewsView.vue'
 import { checkSession } from '@/services/auth'
 
+
+const BlockedView = () => import('@/views/BlockedView.vue')
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -43,10 +46,26 @@ const router = createRouter({
       component: ReviewsView,
       meta: { requiresAuth: true },
     },
+
+    // 🔥 NUEVA RUTA BLOCKED
+    {
+      path: '/blocked',
+      name: 'blocked',
+      component: BlockedView,
+      meta: { requiresAuth: false },
+    },
   ],
 })
 
 router.beforeEach(async (to, _from) => {
+
+  // 🔥 BLOQUEO GLOBAL (PRIMERO DE TODO)
+  const isBlocked = sessionStorage.getItem("blocked")
+
+  if (isBlocked && to.path !== "/blocked") {
+    return "/blocked"
+  }
+
   const totpPending = sessionStorage.getItem('totp_step')
 
   let isAuth: boolean = false

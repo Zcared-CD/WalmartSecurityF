@@ -64,9 +64,23 @@ async function bootstrap() {
   })
 
   window.addEventListener("force-logout", () => {
+    const isBlocked = sessionStorage.getItem("blocked")
+    const blockedUntil = sessionStorage.getItem("blocked_until")
+
     sessionStorage.clear()
     localStorage.clear()
-    window.location.replace('/login')
+
+    if (isBlocked) {
+      sessionStorage.setItem("blocked", "true")
+
+      if (blockedUntil) {
+        sessionStorage.setItem("blocked_until", blockedUntil)
+      }
+
+      window.location.replace("/blocked")
+    } else {
+      window.location.replace("/login")
+    }
   })
 
 
