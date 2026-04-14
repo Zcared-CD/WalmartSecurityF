@@ -47,7 +47,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
 
-    // 🔥 NUEVA RUTA BLOCKED
+
     {
       path: '/blocked',
       name: 'blocked',
@@ -91,12 +91,6 @@ router.beforeEach(async (to, _from) => {
 
   if (to.path === '/token' && isAuth) {
     return '/dashboard'
-  }
-
-  const accepted = localStorage.getItem("security_accept")
-
-  if (!accepted && to.meta.requiresAuth) {
-    return '/login'
   }
 
   if (!to.meta.requiresAuth && isAuth && to.path === '/login') {
