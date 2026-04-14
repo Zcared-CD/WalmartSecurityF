@@ -59,7 +59,6 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from) => {
 
-  // 🔥 BLOQUEO GLOBAL (PRIMERO DE TODO)
   const isBlocked = sessionStorage.getItem("blocked")
 
   if (isBlocked && to.path !== "/blocked") {
@@ -92,6 +91,12 @@ router.beforeEach(async (to, _from) => {
 
   if (to.path === '/token' && isAuth) {
     return '/dashboard'
+  }
+
+  const accepted = localStorage.getItem("security_accept")
+
+  if (!accepted && to.meta.requiresAuth) {
+    return '/login'
   }
 
   if (!to.meta.requiresAuth && isAuth && to.path === '/login') {
