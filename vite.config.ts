@@ -4,12 +4,14 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify from 'vite-plugin-vuetify'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
   const target = env.VITE_API_URL || 'http://127.0.0.1:8000'
 
   return {
-    plugins: [vue(), vuetify({ autoImport: true }), vueDevTools()],
+    plugins: [vue(), vuetify({ autoImport: true }), vueDevTools(), cloudflare()],
 
     resolve: {
       alias: {
@@ -24,5 +26,5 @@ export default defineConfig(({ mode }) => {
         '/refresh': { target, changeOrigin: true, secure: false },
       }
     }
-  }
+  };
 })
