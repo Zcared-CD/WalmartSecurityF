@@ -115,6 +115,8 @@
             label="Comentario"
             variant="outlined"
             rows="3"
+            @paste.prevent="handlePasteReview"
+            @input="formErrors.comment = ''"
             :error-messages="formErrors.comment"
           />
         </v-card-text>
@@ -175,8 +177,24 @@ const reviews = ref<Review[]>([])
 const products = ref<Product[]>([])
 const otpDialog = ref(false)
 let pendingAction: null | ((token?: string) => Promise<void>) = null
+let pasteAttemptsReview = 0
+
 
 const formErrors = ref({ item: '', rating: '', comment: '' })
+
+
+const handlePasteReview = (e: ClipboardEvent) => {
+  e.preventDefault()
+  pasteAttemptsReview++
+
+  if (!formErrors.value.comment) {
+    formErrors.value.comment = "Por seguridad no se permite pegar"
+  }
+
+  if (pasteAttemptsReview >= 3 && !import.meta.env.PROD) {
+    console.warn("Posible automatización en reviews")
+  }
+}
 
 
 const defaultForm = {
@@ -237,6 +255,7 @@ async function loadProducts() {
 }
 
 function openCreateDialog() {
+  pasteAttemptsReview = 0 
   isEdit.value = false
   form.value = { ...defaultForm }
   formErrors.value = { item: '', rating: '', comment: '' }
@@ -289,6 +308,7 @@ async function handleOtpSuccess(codigo: string) {
 }
 
 async function saveReview() {
+  pasteAttemptsReview = 0 
   formErrors.value = { item: '', rating: '', comment: '' }
   let valid = true
 
