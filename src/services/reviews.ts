@@ -38,15 +38,34 @@ export async function createReview(data: { item: string; rating: number; comment
   }
 }
 
-export async function updateReview(id: string, data: { rating?: number; comment?: string }) {
+export async function updateReview(
+  id: string,
+  data: { rating?: number; comment?: string },
+  criticalToken?: string
+) {
   try {
-    const response = await api.patch(`/reviews/${id}/`, data)
+    const response = await api.patch(`/reviews/${id}/`, data, {
+      headers: criticalToken
+        ? { 'X-Critical-Token': criticalToken }
+        : {}
+    })
+
     return response.data
+
   } catch (error) {
-    const err = error as AxiosError
+    const err = error as AxiosError<any>
+
+    if (
+      err.response?.status === 403 &&
+      err.response?.data?.error === "Requiere verificación crítica"
+    ) {
+      throw err
+    }
+
     if (err.response?.status === 403) {
       throw new Error('SIN_PERMISO')
     }
+
     console.error('Error UPDATE review:', err.response?.data || err.message)
     throw err
   }

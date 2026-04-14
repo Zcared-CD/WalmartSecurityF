@@ -329,12 +329,27 @@ async function saveReview() {
 
   try {
     if (isEdit.value) {
-      const updated = await updateReview(form.value.review_id, {
-        rating: form.value.rating,
-        comment: form.value.comment,
-      })
-      const index = reviews.value.findIndex((r) => r.review_id === updated.review_id)
-      if (index !== -1) reviews.value[index] = updated
+      const id = form.value.review_id
+      pendingAction = async (token?: string) => {
+        if (!token) return
+
+        const updated = await updateReview(
+          id,
+          {
+            rating: form.value.rating,
+            comment: form.value.comment,
+          },
+          token
+        )
+
+        const index = reviews.value.findIndex((r) => r.review_id === updated.review_id)
+        if (index !== -1) reviews.value[index] = updated
+
+        dialog.value = false
+      }
+
+      otpDialog.value = true
+      return
     } else {
       const created = await createReview({
         item: form.value.item,
