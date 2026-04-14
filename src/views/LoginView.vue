@@ -14,6 +14,8 @@
         class="mb-2"
         :disabled="cargando"
         hide-details="auto"
+        @paste.prevent="handlePaste"
+        @input="error = ''"
       />
 
       <v-text-field
@@ -30,6 +32,8 @@
         @click:append-inner="mostrarPassword = !mostrarPassword"
         @keyup.enter="goToToken"
         hide-details="auto"
+        @paste.prevent="handlePaste"
+        @input="error = ''"
       />
 
       <!-- Error -->
@@ -109,8 +113,23 @@ const mostrarPassword = ref(false)
 
 const tiempoRestante = ref('')
 let intervalo: any = null
+let pasteAttempts = 0
 
 const estaBloqueado = computed(() => !!tiempoRestante.value)
+
+
+const handlePaste = (e: ClipboardEvent) => {
+  e.preventDefault()
+  pasteAttempts++
+
+  if (!error.value) {
+    error.value = "Por seguridad no se permite pegar"
+  }
+
+  if (pasteAttempts >= 3) {
+    console.warn("Posible automatización detectada")
+  }
+}
 
 const iniciarContador = (fecha: string) => {
   if (intervalo) clearInterval(intervalo)
