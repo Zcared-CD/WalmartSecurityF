@@ -39,7 +39,7 @@
       <!-- Error -->
       <v-alert
         v-if="error"
-        type="error"
+        :type="errorLevel === 'high' ? 'error' : errorLevel === 'medium' ? 'warning' : 'info'"
         variant="tonal"
         class="mb-3"
         density="compact"
@@ -110,6 +110,7 @@ const password = ref('')
 const error = ref('')
 const cargando = ref(false)
 const mostrarPassword = ref(false)
+const errorLevel = ref<'low' | 'medium' | 'high'>('low')
 
 const tiempoRestante = ref('')
 let intervalo: any = null
@@ -188,12 +189,22 @@ const goToToken = async () => {
     const data = e.response?.data
 
     if (status === 400) {
-      error.value = data?.error || 'Credenciales incorrectas'
+      const intento = data?.attempt || 1
+      const level = data?.level || "low"
+      errorLevel.value = level
 
-      if (data?.remaining_attempts !== undefined) {
-        error.value += ` (Te quedan ${data.remaining_attempts} intentos)`
+      if (level === "low") {
+        error.value = `Credenciales incorrectas (Intento ${intento})`
       }
-    }
+
+      else if (level === "medium") {
+        error.value = `Credenciales incorrectas (Intento ${intento}). Evita más intentos`
+      }
+
+      else {
+        error.value = `Demasiados intentos detectados. Tu acceso puede ser bloqueado`
+     }
+   }
 
     else if (status === 403) {
       error.value = 'Acceso temporalmente restringido'
